@@ -271,11 +271,11 @@ static void pkgi_do_main(pkgi_input* input)
         {
             input->pressed &= ~PKGI_BUTTON_SELECT;
             pkgi_dialog_message("\xE2\x98\x85  PKGi PSP v" PKGI_VERSION "  \xE2\x98\x85",
-                                "             PlayStation 3 version by Bucanero\n\n"
-                                "           https://github.com/bucanero/pkgi-psp/");
+                                "PlayStation Portable version by Bucanero\n\n"
+                                " https://github.com/bucanero/pkgi-psp/");
         }
 
-        if (input->active & PKGI_BUTTON_L2)
+        if (input->active & PKGI_BUTTON_LEFT)
         {
             config.filter ^= content_filter(config.content);
 
@@ -290,7 +290,7 @@ static void pkgi_do_main(pkgi_input* input)
             db_count = pkgi_db_count();
         }
 
-        if (input->active & PKGI_BUTTON_R2)
+        if (input->active & PKGI_BUTTON_RIGHT)
         {
             config.filter ^= content_filter(config.content);
 

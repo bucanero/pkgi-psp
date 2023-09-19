@@ -649,7 +649,7 @@ int pkgi_download(const DbItem* item, const int background_dl)
     if (item->rap)
     {
         if (!create_rap(item->content, item->rap)) goto finish;
-        if (!create_rif(item->content, item->rap)) goto finish;
+//        if (!create_rif(item->content, item->rap)) goto finish;
     }
 
     pkgi_dialog_update_progress(_("Downloading icon"), NULL, NULL, 1.f);

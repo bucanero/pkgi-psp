@@ -3,8 +3,8 @@
 #define PKGI_SCREEN_WIDTH  480
 #define PKGI_SCREEN_HEIGHT 272
 
-#define PKGI_COLOR(R, G, B)		(((R)<<16) | ((G)<<8) | (B))
-#define RGBA_COLOR(C, ALPHA)	((C<<8) | ALPHA)
+#define PKGI_COLOR(R, G, B)		(((R)<<24) | ((G)<<16) | ((B)<<8))
+#define RGBA_COLOR(C, ALPHA)	((C) | ALPHA)
 
 #define RGBA_R(c)		(uint8_t)((c & 0xFF000000) >> 24)
 #define RGBA_G(c)		(uint8_t)((c & 0x00FF0000) >> 16)
@@ -54,25 +54,26 @@
 
 #define PKGI_ANIMATION_SPEED 4000 // px/second
 
+#define PKGI_FONT_8x16   0
 #define PKGI_FONT_Z      1000
-#define PKGI_FONT_WIDTH  10
+#define PKGI_FONT_WIDTH  8
 #define PKGI_FONT_HEIGHT 16
 #define PKGI_FONT_SHADOW 2
 
 #define PKGI_MAIN_COLUMN_PADDING    10
 #define PKGI_MAIN_HLINE_EXTRA       5
-#define PKGI_MAIN_ROW_PADDING       2
+#define PKGI_MAIN_ROW_PADDING       1
 #define PKGI_MAIN_HLINE_HEIGHT      2
 #define PKGI_MAIN_TEXT_PADDING      5
 #define PKGI_MAIN_SCROLL_WIDTH      2
 #define PKGI_MAIN_SCROLL_PADDING    2
 #define PKGI_MAIN_SCROLL_MIN_HEIGHT 50
-#define PKGI_MAIN_HMARGIN           20
-#define PKGI_MAIN_VMARGIN           20
+#define PKGI_MAIN_HMARGIN           8
+#define PKGI_MAIN_VMARGIN           4
 
 #define PKGI_DIALOG_TEXT_Z  800
-#define PKGI_DIALOG_HMARGIN 100
-#define PKGI_DIALOG_VMARGIN 150
+#define PKGI_DIALOG_HMARGIN 50
+#define PKGI_DIALOG_VMARGIN 50
 #define PKGI_DIALOG_PADDING 30
 #define PKGI_DIALOG_WIDTH (PKGI_SCREEN_WIDTH - 2*PKGI_DIALOG_HMARGIN)
 #define PKGI_DIALOG_HEIGHT (PKGI_SCREEN_HEIGHT - 2*PKGI_DIALOG_VMARGIN)

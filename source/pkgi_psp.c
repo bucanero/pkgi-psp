@@ -9,10 +9,9 @@
 #include <pspnet_apctl.h>
 #include <psputility.h>
 #include <pspaudio.h>
-//#include <pspthreadman.h>
-
-#include "psppad.h"
-//#include <io/pad.h>
+#include <pspctrl.h>
+#include <pspthreadman.h>
+#include <pspiofilemgr.h>
 //#include <net/net.h>
 
 #include <unistd.h>
@@ -23,6 +22,7 @@
 
 #include "libfont.h"
 #include "ttf_render.h"
+#include "font-8x16.h"
 
 // Audio handle
 static int32_t audio = 0;
@@ -32,7 +32,6 @@ extern const uint8_t _binary_data_haiku_s3m_size;
 static uint32_t * texture_mem;      // Pointers to texture memory
 static uint32_t * free_mem;         // Pointer after last texture
 
-#include "font-9x16.h"
 
 //#include <mikmod.h>
 //#include "mikmod_loader.h"
@@ -54,7 +53,7 @@ static uint32_t * free_mem;         // Pointer after last texture
 #define ANALOG_MIN          (ANALOG_CENTER - ANALOG_THRESHOLD)
 #define ANALOG_MAX          (ANALOG_CENTER + ANALOG_THRESHOLD)
 
-#define PKGI_USER_AGENT "Mozilla/5.0 (PLAYSTATION 3; 1.00)"
+#define PKGI_USER_AGENT "Mozilla/5.0 (PLAYSTATION PORTABLE; 1.00)"
 
 
 struct pkgi_http
@@ -80,7 +79,7 @@ typedef struct
 } curl_memory_t;
 
 
-static SDL_mutex* g_dialog_lock;
+static SceLwMutexWorkarea g_dialog_lock;
 static uint32_t cpu_temp_c[2];
 
 static int g_ok_button;
@@ -246,7 +245,7 @@ while(0)//    while (module)
     pkgi_thread_exit();
 }
 
-void init_music(void)
+static void init_music(void)
 {
     // Open a handle to audio output device
     audio = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_AUDIO_SAMPLE_ALIGN(AUDIO_SAMPLES), PSP_AUDIO_FORMAT_STEREO);
@@ -298,7 +297,7 @@ void pkgi_stop_music(void)
 //    Player_Stop();
 }
 
-void end_music(void)
+static void end_music(void)
 {
 //    Player_Free(module);
     
@@ -318,7 +317,7 @@ static int sys_game_get_temperature(int sel, uint32_t *temperature)
 
 int pkgi_dialog_lock(void)
 {
-    int res = SDL_LockMutex(g_dialog_lock);
+    int res = sceKernelLockLwMutex(&g_dialog_lock, 1, NULL);
     if (res != 0)
     {
         LOG("dialog lock failed error=0x%08x", res);
@@ -328,7 +327,7 @@ int pkgi_dialog_lock(void)
 
 int pkgi_dialog_unlock(void)
 {
-    int res = SDL_UnlockMutex(g_dialog_lock);
+    int res = sceKernelUnlockLwMutex(&g_dialog_lock, 1);
     if (res != 0)
     {
         LOG("dialog unlock failed error=0x%08x", res);
@@ -644,10 +643,13 @@ void load_ttf_fonts(void)
         return; // fail!
 
     ResetFont();
-    free_mem = (uint32_t *) AddFontFromBitmapArray((uint8_t *) console_font_9x16, (uint8_t *) texture_mem, 0, 0xFF, 9, 16, 1, BIT7_FIRST_PIXEL);
+    free_mem = (uint32_t *) AddFontFromBitmapArray((uint8_t *) console_font_8x16, (uint8_t *) texture_mem, 0, 0xFF, PKGI_FONT_WIDTH, PKGI_FONT_HEIGHT, 1, BIT7_FIRST_PIXEL);
 
     if (TTFLoadFont(0, "./DATA/NotoSansJP-Medium.otf", NULL, 0) < 0)
+    {
+        LOG("[ERROR] Failed to load font!");
         return;
+    }
 
     free_mem = (uint32_t*) init_ttf_table((uint8_t*) free_mem);
 }
@@ -677,23 +679,35 @@ static int http_init(void)
 	sceUtilityLoadNetModule(PSP_NET_MODULE_INET);
 	
 	if ((ret = sceNetInit(128 * 1024, 42, 4 * 1024, 42, 4 * 1024)) < 0) {
-		LOG("sceNetInit() failed: 0x%08x\n", ret);
+		LOG("sceNetInit() failed: 0x%08x", ret);
 		return -1;
 	}
 
 	if ((ret = sceNetInetInit()) < 0) {
-		LOG("sceNetInetInit() failed: 0x%08x\n", ret);
+		LOG("sceNetInetInit() failed: 0x%08x", ret);
 		return -1;
 	}
 
 	if ((ret = sceNetApctlInit(0x8000, 48)) < 0) {
-		LOG("sceNetApctlInit() failed: 0x%08x\n", ret);
+		LOG("sceNetApctlInit() failed: 0x%08x", ret);
 		return -1;
 	}
 
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	return 0;
+}
+
+static void http_end(void)
+{
+	curl_global_cleanup();
+
+	sceNetApctlTerm();
+	sceNetInetTerm();
+	sceNetTerm();
+
+	sceUtilityUnloadNetModule(PSP_NET_MODULE_INET);
+	sceUtilityUnloadNetModule(PSP_NET_MODULE_COMMON);
 }
 
 static int init_video(void)
@@ -724,18 +738,33 @@ static int init_video(void)
     return 0;
 }
 
+static int pspPadInit(void)
+{
+    int ret;
+
+    sceCtrlSetSamplingCycle(0);
+    ret=sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+    if (ret < 0)
+    {
+        LOG("sceCtrlSetSamplingMode Error 0x%8X", ret);
+        return -1;
+    }
+
+    return ret;
+}
+
 void pkgi_start(void)
 {
     int ret = 0;
 
     pkgi_start_debug_log();
 
-    g_dialog_lock = SDL_CreateMutex();
-    if (g_dialog_lock == NULL) {
+    ret = sceKernelCreateLwMutex(&g_dialog_lock, "dialog_mutex", 0, 0, NULL);
+    if (ret != 0) {
         LOG("mutex create error (%x)", ret);
     }
 
-    //sysUtilGetSystemParamInt(SYSUTIL_SYSTEMPARAM_ID_ENTER_BUTTON_ASSIGN, &ret);
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &ret); // X/O button swap
     if (ret == 0)
     {
         g_ok_button = PKGI_BUTTON_O;
@@ -747,7 +776,6 @@ void pkgi_start(void)
         g_cancel_button = PKGI_BUTTON_O;
     }
     
-//	ya2d_init();
     if (init_video() < 0)
     {
         LOG("[ERROR] Failed to init video!");
@@ -762,56 +790,53 @@ void pkgi_start(void)
     }
 
     LOG("initializing Network");
-if(0)//    if (http_init() < 0)
+    if (http_init() < 0)
     {
         LOG("[ERROR] Failed to init network!");
 //        return (-1);
     }
-
-//	ya2d_paddata[0].ANA_L_H = ANALOG_CENTER;
-//	ya2d_paddata[0].ANA_L_V = ANALOG_CENTER;
 
     tex_buttons.circle   = pkgi_load_image_buffer(CIRCLE, png);
     tex_buttons.cross    = pkgi_load_image_buffer(CROSS, png);
     tex_buttons.triangle = pkgi_load_image_buffer(TRIANGLE, png);
     tex_buttons.square   = pkgi_load_image_buffer(SQUARE, png);
 
+    load_ttf_fonts();
+
+    SetCurrentFont(PKGI_FONT_8x16);
     SetFontSize(PKGI_FONT_WIDTH, PKGI_FONT_HEIGHT);
     SetFontZ(PKGI_FONT_Z);
-
-    load_ttf_fonts();
 
     pkgi_mkdirs(PKGI_TMP_FOLDER);
     pkgi_mkdirs(PKGI_RAP_FOLDER);
 
     init_music();
 
-    // register exit callback
-    //sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, sys_callback, NULL);
-
     g_time = pkgi_time_msec();
 }
 
 int pkgi_update(pkgi_input* input)
 {
-	pspPadUpdate();
-    
+    SceCtrlData padData;
     uint32_t previous = input->down;
-    input->down = pspPadGetCurrentButtonsPressed();
-/*    memcpy(&input->down, &ya2d_paddata[0].button[2], sizeof(uint32_t));
 
-    if (ya2d_paddata[0].ANA_L_V < ANALOG_MIN)
-        input->down |= PKGI_BUTTON_UP;
-        
-    if (ya2d_paddata[0].ANA_L_V > ANALOG_MAX)
-        input->down |= PKGI_BUTTON_DOWN;
-        
-    if (ya2d_paddata[0].ANA_L_H < ANALOG_MIN)
-        input->down |= PKGI_BUTTON_LEFT;
-        
-    if (ya2d_paddata[0].ANA_L_H > ANALOG_MAX)
-        input->down |= PKGI_BUTTON_RIGHT;
-*/
+    if(sceCtrlPeekBufferPositive(&padData, 1) > 0)
+    {
+        if (padData.Ly < ANALOG_MIN)
+            padData.Buttons |= PSP_CTRL_UP;
+
+        if (padData.Ly > ANALOG_MAX)
+            padData.Buttons |= PSP_CTRL_DOWN;
+
+        if (padData.Lx < ANALOG_MIN)
+            padData.Buttons |= PSP_CTRL_LEFT;
+
+        if (padData.Lx > ANALOG_MAX)
+            padData.Buttons |= PSP_CTRL_RIGHT;
+
+        input->down = padData.Buttons;
+    }
+
     input->pressed = input->down & ~previous;
     input->active = input->pressed;
 
@@ -828,11 +853,9 @@ int pkgi_update(pkgi_input* input)
         g_button_frame_count = 0;
     }
 
-// Clear the canvas
+    // Clear the canvas
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF);
     SDL_RenderClear(renderer);
-//    ya2d_screenBeginDrawing();
-//	reset_ttf_frame();
 
     uint64_t time = pkgi_time_msec();
     input->delta = time - g_time;
@@ -849,7 +872,7 @@ void pkgi_swap(void)
 
 void pkgi_end(void)
 {
-//    if (module) end_music();
+    end_music();
 
     curl_global_cleanup();
     pkgi_stop_debug_log();
@@ -860,17 +883,12 @@ void pkgi_end(void)
     pkgi_free_texture(tex_buttons.square);
 
     // Cleanup resources
+    sceKernelDeleteLwMutex(&g_dialog_lock);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     // Stop all SDL sub-systems
     SDL_Quit();
-//    http_end();
-    pspPadFinish();
-    //sysMutexDestroy(g_dialog_lock);
-
-#ifdef PKGI_ENABLE_LOGGING
-    sysProcessExitSpawn2("/dev_hdd0/game/PSL145310/RELOAD.SELF", NULL, NULL, NULL, 0, 1001, SYS_PROCESS_SPAWN_STACK_SIZE_1M);
-#endif
+    http_end();
 
     //sysProcessExit(0);
 }
@@ -895,14 +913,16 @@ int pkgi_temperature_is_high(void)
 
 uint64_t pkgi_get_free_space(void)
 {
-    uint32_t blockSize;
+    SceDevInf inf;
+    SceDevctlCmd cmd;
     static uint32_t t = 0;
     static uint64_t freeSize = 0;
 
-    if (t++ % 0x200 == 0)
+    if (t++ % 0x1000 == 0)
     {
-        //sysFsGetFreeSize("/dev_hdd0/", &blockSize, &freeSize);
-        freeSize *= blockSize;
+        cmd.dev_inf = &inf;
+        sceIoDevctl("ms0:", SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0);
+        freeSize = inf.freeClusters * inf.sectorCount * inf.sectorSize;
     }
 
     return (freeSize);
@@ -962,21 +982,23 @@ uint32_t pkgi_time_msec()
 
 void pkgi_thread_exit()
 {
-//	sysThreadExit(0);
+    sceKernelExitThread(0);
 }
 
 void pkgi_start_thread(const char* name, pkgi_thread_entry* start)
 {
-	SDL_Thread* id;
+    SceUID id;
 
-    id = SDL_CreateThread((SDL_ThreadFunction) start, name, NULL);
-//    id = SDL_CreateThreadWithStackSize((SDL_ThreadFunction) start, name, 1024*1024, NULL);
-    SDL_DetachThread(id);
-	LOG("sysThreadCreate: %s (0x%08x)",name, id);
+    id = sceKernelCreateThread(name, (SceKernelThreadEntry) start, 0x18, 0x10000, 0, NULL);
+	LOG("sysThreadCreate: %s (0x%08x)", name, id);
 
-    if (id == NULL)
+    if (id < 0)
     {
         LOG("failed to start %s thread", name);
+    }
+    else
+    {
+        sceKernelStartThread(id, 0, NULL);
     }
 }
 
@@ -1206,10 +1228,10 @@ int pkgi_text_width_ttf(const char* text)
 void pkgi_draw_text(int x, int y, uint32_t color, const char* text)
 {
     SetFontColor(RGBA_COLOR(PKGI_COLOR_TEXT_SHADOW, 128), 0);
-    DrawString((float)x+PKGI_FONT_SHADOW, (float)y+PKGI_FONT_SHADOW, (char *)text);
+    DrawStringMono((float)x+PKGI_FONT_SHADOW, (float)y+PKGI_FONT_SHADOW, (char *)text);
 
     SetFontColor(RGBA_COLOR(color, 200), 0);
-    DrawString((float)x, (float)y, (char *)text);
+    DrawStringMono((float)x, (float)y, (char *)text);
 }
 
 
@@ -1587,69 +1609,50 @@ char * pkgi_http_download_buffer(const char* url, uint32_t* buf_size)
 const char * pkgi_get_user_language()
 {
     int language;
-/*
-    if(sysUtilGetSystemParamInt(SYSUTIL_SYSTEMPARAM_ID_LANG, &language) < 0)
+
+    // Prompt language
+    if(sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &language) < 0)
         return "en";
 
     switch (language)
     {
-    case SYSUTIL_LANG_JAPANESE:             //  0   Japanese
+    case PSP_SYSTEMPARAM_LANGUAGE_JAPANESE:             //  0   Japanese
         return "ja";
 
-    case SYSUTIL_LANG_ENGLISH_US:           //  1   English (United States)
-    case SYSUTIL_LANG_ENGLISH_GB:           // 18   English (United Kingdom)
+    case PSP_SYSTEMPARAM_LANGUAGE_ENGLISH:              //  1   English (United States)
         return "en";
 
-    case SYSUTIL_LANG_FRENCH:               //  2   French
+    case PSP_SYSTEMPARAM_LANGUAGE_FRENCH:               //  2   French
         return "fr";
 
-    case SYSUTIL_LANG_SPANISH:              //  3   Spanish
+    case PSP_SYSTEMPARAM_LANGUAGE_SPANISH:              //  3   Spanish
         return "es";
 
-    case SYSUTIL_LANG_GERMAN:               //  4   German
+    case PSP_SYSTEMPARAM_LANGUAGE_GERMAN:               //  4   German
         return "de";
 
-    case SYSUTIL_LANG_ITALIAN:              //  5   Italian
+    case PSP_SYSTEMPARAM_LANGUAGE_ITALIAN:              //  5   Italian
         return "it";
 
-    case SYSUTIL_LANG_DUTCH:                //  6   Dutch
+    case PSP_SYSTEMPARAM_LANGUAGE_DUTCH:                //  6   Dutch
         return "nl";
 
-    case SYSUTIL_LANG_RUSSIAN:              //  8   Russian
+    case PSP_SYSTEMPARAM_LANGUAGE_RUSSIAN:              //  8   Russian
         return "ru";
 
-    case SYSUTIL_LANG_KOREAN:               //  9   Korean
+    case PSP_SYSTEMPARAM_LANGUAGE_KOREAN:               //  9   Korean
         return "ko";
 
-    case SYSUTIL_LANG_CHINESE_T:            // 10   Chinese (traditional)
-    case SYSUTIL_LANG_CHINESE_S:            // 11   Chinese (simplified)
+    case PSP_SYSTEMPARAM_LANGUAGE_CHINESE_TRADITIONAL:  // 10   Chinese (traditional)
+    case PSP_SYSTEMPARAM_LANGUAGE_CHINESE_SIMPLIFIED:   // 11   Chinese (simplified)
         return "ch";
 
-    case SYSUTIL_LANG_FINNISH:              // 12   Finnish
-        return "fi";
-
-    case SYSUTIL_LANG_SWEDISH:              // 13   Swedish
-        return "sv";
-
-    case SYSUTIL_LANG_DANISH:               // 14   Danish
-        return "da";
-
-    case SYSUTIL_LANG_NORWEGIAN:            // 15   Norwegian
-        return "no";
-
-    case SYSUTIL_LANG_POLISH:               // 16   Polish
-        return "pl";
-
-    case SYSUTIL_LANG_PORTUGUESE_PT:        //  7   Portuguese (Portugal)
-    case SYSUTIL_LANG_PORTUGUESE_BR:        // 17   Portuguese (Brazil)
+    case PSP_SYSTEMPARAM_LANGUAGE_PORTUGUESE:           //  7   Portuguese (Portugal)
         return "pt";
-
-    case SYSUTIL_LANG_TURKISH:              // 19   Turkish
-        return "tr";
 
     default:
         break;
     }
-*/
+
     return "en";
 }

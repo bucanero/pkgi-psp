@@ -355,7 +355,11 @@ int pkgi_do_menu(pkgi_input* input)
             pkgi_snprintf(text, sizeof(text), PKGI_UTF8_CLEAR " %s", content_entries[menu_config.content].text);
         }
         
-        pkgi_draw_text_z(x, y, PKGI_MENU_TEXT_Z, (menu_selected == i) ? PKGI_COLOR_TEXT_MENU_SELECTED : PKGI_COLOR_TEXT_MENU, text);
+        if (menu_selected == i)
+        {
+            pkgi_draw_fill_rect_z(PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN/2), y, PKGI_MENU_Z, pkgi_menu_width - PKGI_MAIN_HMARGIN, font_height, PKGI_COLOR(20, 20, 20));
+        }
+        pkgi_draw_text_z(x, y, PKGI_MENU_TEXT_Z, PKGI_COLOR_TEXT_MENU, text);
 
         y += font_height;
     }

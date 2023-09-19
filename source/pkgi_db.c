@@ -12,11 +12,11 @@
 //#include <libxml/tree.h>
 
 #define MAX_DB_SIZE (4*1024*1024)
-#define MAX_DB_ITEMS 0x20000
+#define MAX_DB_ITEMS 0x4000
 #define MAX_DB_COLUMNS 32
 
-#define EXTDB_ID_LENGTH 110
-#define EXTDB_ID_SHA256 "\x7d\x24\x89\x6f\x50\xf2\xb2\x3b\x7f\xbd\x12\xc4\x7c\x67\x93\xcd\xb5\x92\x55\x7c\x1c\x09\xaf\xf3\x25\xf5\x46\x5a\x35\x7f\xc9\x64"
+#define EXTDB_ID_LENGTH 115
+#define EXTDB_ID_SHA256 "\xa7\xcd\x5b\x2a\x88\xed\xc9\x6e\x56\x0a\x9e\xb5\x5d\xe6\x70\x40\xbc\xa6\xd9\x53\x0a\x66\xc4\xdc\x78\x34\x6f\x82\x2c\x55\x38\x39"
 
 static char* db_data = NULL;
 static uint32_t db_total;
@@ -81,11 +81,12 @@ static const ColumnType external_format[] =
 {
     ColumnUnknown,
     ColumnUnknown,
+    ColumnUnknown,
     ColumnName,
     ColumnUrl,
-    ColumnRap,
     ColumnContentId,
     ColumnUnknown,
+    ColumnRap,
     ColumnUnknown,
     ColumnSize,
     ColumnChecksum

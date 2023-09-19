@@ -167,6 +167,7 @@ void pkgi_do_dialog(pkgi_input* input)
                 dialog_callback = NULL;
             }
         }
+/*
         else if (dialog_type == DialogDetails && (input->pressed & PKGI_BUTTON_S))
         {
             int updates = pkgi_db_load_xml_updates(db_item->content, db_item->name);
@@ -181,6 +182,7 @@ void pkgi_do_dialog(pkgi_input* input)
                 dialog_type = DialogMessage;
             }
         }
+*/
     }
 
     if (dialog_delta != 0)
@@ -336,7 +338,7 @@ void pkgi_do_dialog(pkgi_input* input)
         if (local_allow_close)
         {
             char text[256];
-            pkgi_snprintf(text, sizeof(text), _("press %s to close - %s to scan updates"), pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O, PKGI_UTF8_S);
+            pkgi_snprintf(text, sizeof(text), _("press %s to close"), pkgi_ok_button() == PKGI_BUTTON_X ? PKGI_UTF8_X : PKGI_UTF8_O, PKGI_UTF8_S);
             pkgi_draw_text_z((PKGI_SCREEN_WIDTH - pkgi_text_width(text)) / 2, PKGI_DIALOG_VMARGIN + h - 2 * font_height, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, text);
         }
     }

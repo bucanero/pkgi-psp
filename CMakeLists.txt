@@ -58,7 +58,6 @@ add_resources(apollo_res ${res_files})
 add_executable(${PROJECT_NAME}
   ${apollo_res}
 #  source/ahx.c
-  source/psppad.c
   source/loadpng.c
   source/libfont.c
   source/ttf_fonts.c

@@ -4,29 +4,27 @@
 #include <stdarg.h>
 #include "pkgi_dialog.h"
 
-#define PKGI_UPDATE_URL     "https://api.github.com/repos/bucanero/pkgi-ps3/releases/latest"
-#define PKGI_VERSION        "1.2.4"
+#define PKGI_UPDATE_URL     "https://api.github.com/repos/bucanero/pkgi-psp/releases/latest"
+#define PKGI_VERSION        "0.5.0"
 
-#define PKGI_BUTTON_SELECT 0x00010000
-#define PKGI_BUTTON_START  0x00080000
-#define PKGI_BUTTON_UP     0x00100000
-#define PKGI_BUTTON_RIGHT  0x00200000
-#define PKGI_BUTTON_DOWN   0x00400000
-#define PKGI_BUTTON_LEFT   0x00800000
+#define PKGI_BUTTON_SELECT 0x000001
+#define PKGI_BUTTON_START  0x000008
+#define PKGI_BUTTON_UP     0x000010
+#define PKGI_BUTTON_RIGHT  0x000020
+#define PKGI_BUTTON_DOWN   0x000040
+#define PKGI_BUTTON_LEFT   0x000080
 
-#define PKGI_BUTTON_LT     0x00000004 // L1
-#define PKGI_BUTTON_RT     0x00000008 // R1
-#define PKGI_BUTTON_L2     0x00000001
-#define PKGI_BUTTON_R2     0x00000002
+#define PKGI_BUTTON_LT     0x000100 // L1
+#define PKGI_BUTTON_RT     0x000200 // R1
 
-#define PKGI_BUTTON_X 0x00000040 // cross
-#define PKGI_BUTTON_O 0x00000020 // circle
-#define PKGI_BUTTON_T 0x00000010 // triangle
-#define PKGI_BUTTON_S 0x00000080 // square
+#define PKGI_BUTTON_X 0x004000 // cross
+#define PKGI_BUTTON_O 0x002000 // circle
+#define PKGI_BUTTON_T 0x001000 // triangle
+#define PKGI_BUTTON_S 0x008000 // square
 
 #define PKGI_UNUSED(x) (void)(x)
 
-#define PKGI_APP_FOLDER "/dev_hdd0/game/NP00PKGI3/USRDIR"
+#define PKGI_APP_FOLDER "."
 #define PKGI_RAP_FOLDER "/dev_hdd0/exdata"
 #define PKGI_TMP_FOLDER "/dev_hdd0/tmp/pkgi"
 #define PKGI_QUEUE_FOLDER "/dev_hdd0/vsh/task"
@@ -56,8 +54,6 @@ void pkgi_memmove(void* dst, const void* src, uint32_t size);
 int pkgi_memequ(const void* a, const void* b, uint32_t size);
 void* pkgi_malloc(uint32_t size);
 void pkgi_free(void* ptr);
-
-int pkgi_is_unsafe_mode(void);
 
 int pkgi_ok_button(void);
 int pkgi_cancel_button(void);
