@@ -210,12 +210,9 @@ int pkgi_memequ(const void* a, const void* b, uint32_t size)
 static void pkgi_start_debug_log(void)
 {
 #ifdef PKGI_ENABLE_LOGGING
-    dbglogger_init();
+    dbglogger_init_mode(FILE_LOGGER, "ms0:/apollo-psp.log", 1);
     LOG("PKGi PSP logging initialized");
-
-    dbglogger_failsafe("9999");
 #endif
-//    dbglogger_init_mode(FILE_LOGGER, "ms0:/apollo-psp.log", 1);
 }
 
 static void pkgi_stop_debug_log(void)
@@ -967,7 +964,7 @@ int pkgi_dir_exists(const char* path)
 int pkgi_is_installed(const char* content)
 {    
     char path[128];
-    snprintf(path, sizeof(path), "/dev_hdd0/game/%.9s", content + 7);
+    snprintf(path, sizeof(path), "ms0:/PSP/GAME/%.9s", content + 7);
 
     return (pkgi_dir_exists(path));
 }
@@ -1227,10 +1224,10 @@ int pkgi_text_width_ttf(const char* text)
 
 void pkgi_draw_text(int x, int y, uint32_t color, const char* text)
 {
-    SetFontColor(RGBA_COLOR(PKGI_COLOR_TEXT_SHADOW, 128), 0);
+    SetFontColor(RGBA_COLOR(PKGI_COLOR_TEXT_SHADOW, 200), 0);
     DrawStringMono((float)x+PKGI_FONT_SHADOW, (float)y+PKGI_FONT_SHADOW, (char *)text);
 
-    SetFontColor(RGBA_COLOR(color, 200), 0);
+    SetFontColor(RGBA_COLOR(color, 255), 0);
     DrawStringMono((float)x, (float)y, (char *)text);
 }
 

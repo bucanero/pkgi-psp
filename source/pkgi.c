@@ -110,9 +110,9 @@ static void pkgi_download_thread(void)
     pkgi_sleep(300);
 
     pkgi_lock_process();
-    if (pkgi_download(item, config.dl_mode_background))
+    if (pkgi_download(item, config.install_mode_iso))
     {
-        if (!config.dl_mode_background)
+        if (!config.install_mode_iso)
         {
             install(item->content);
             pkgi_dialog_message(item->name, _("Successfully downloaded"));
@@ -532,18 +532,29 @@ static void pkgi_do_refresh(void)
 
 static void pkgi_do_head(void)
 {
+    char size[64];
     char title[256];
-    pkgi_snprintf(title, sizeof(title), "PKGi PSP v%s - %s", PKGI_VERSION, content_type_str(config.content));
+    uint32_t count = pkgi_db_count();
+    uint32_t total = pkgi_db_total();
+
+    if (count == total)
+    {
+        pkgi_snprintf(size, sizeof(size), "%u", count);
+    }
+    else
+    {
+        pkgi_snprintf(size, sizeof(size), "%u (%u)", count, total);
+    }
+    pkgi_snprintf(title, sizeof(title), "PKGi PSP v%s - %s: %s", PKGI_VERSION, content_type_str(config.content), size);
     pkgi_draw_text(PKGI_MAIN_HMARGIN, PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_HEAD, title);
 
     pkgi_draw_fill_rect(0, font_height + PKGI_MAIN_VMARGIN, PKGI_SCREEN_WIDTH, PKGI_MAIN_HLINE_HEIGHT, PKGI_COLOR_HLINE);
 
-    char battery[256];
-    pkgi_snprintf(battery, sizeof(battery), "CPU: %u""\xf8""C RSX: %u""\xf8""C", pkgi_get_temperature(0), pkgi_get_temperature(1));
+    pkgi_friendly_size(size, sizeof(size), pkgi_get_free_space());
+    pkgi_snprintf(title, sizeof(title), "%s: %s", _("Free"), size);
 
-    uint32_t color = pkgi_temperature_is_high() ? PKGI_COLOR_BATTERY_LOW : PKGI_COLOR_BATTERY_CHARGING;
-    int rightw = pkgi_text_width(battery);
-    pkgi_draw_text(PKGI_SCREEN_WIDTH - PKGI_MAIN_HLINE_EXTRA - (rightw + PKGI_MAIN_HMARGIN), PKGI_MAIN_VMARGIN, color, battery);
+    int rightw = pkgi_text_width(title);
+    pkgi_draw_text(PKGI_SCREEN_WIDTH - PKGI_MAIN_HLINE_EXTRA - (rightw + PKGI_MAIN_HMARGIN), PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_HEAD, title);
 
     if (search_active)
     {
@@ -561,33 +572,12 @@ static void pkgi_do_head(void)
 
 static void pkgi_do_tail(void)
 {
+    char text[256];
+
     pkgi_draw_fill_rect_z(0, bottom_y - font_height/2, PKGI_FONT_Z, PKGI_SCREEN_WIDTH, PKGI_MAIN_HLINE_HEIGHT, PKGI_COLOR_HLINE);
 
-    uint32_t count = pkgi_db_count();
-    uint32_t total = pkgi_db_total();
-
-    char text[256];
-    if (count == total)
-    {
-        pkgi_snprintf(text, sizeof(text), "%s: %u", _("Count"), count);
-    }
-    else
-    {
-        pkgi_snprintf(text, sizeof(text), "%s: %u (%u)", _("Count"), count, total);
-    }
-    pkgi_draw_text(PKGI_MAIN_HMARGIN, bottom_y, PKGI_COLOR_TEXT_TAIL, text);
-
-    char size[64];
-    pkgi_friendly_size(size, sizeof(size), pkgi_get_free_space());
-
-    char free_str[64];
-    pkgi_snprintf(free_str, sizeof(free_str), "%s: %s", _("Free"), size);
-
-    int rightw = pkgi_text_width(free_str);
-    pkgi_draw_text(PKGI_SCREEN_WIDTH - (PKGI_MAIN_HLINE_EXTRA + PKGI_MAIN_HMARGIN + rightw), bottom_y, PKGI_COLOR_TEXT_TAIL, free_str);
-
     int left = pkgi_text_width(text) + PKGI_MAIN_TEXT_PADDING;
-    int right = rightw + PKGI_MAIN_TEXT_PADDING;
+    int right = PKGI_MAIN_TEXT_PADDING;
 
     if (pkgi_menu_is_open())
     {

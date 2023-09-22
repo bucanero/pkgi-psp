@@ -56,7 +56,7 @@ static MenuEntry menu_entries[] =
     { MenuFilter, "USA", DbFilterRegionUSA },
 
     { MenuText, "Options:", 0 },
-    { MenuMode, "Back. DL", 1 },
+    { MenuMode, "ISO", 1 },
     { MenuMusic, "Music", 1 },
     { MenuUpdate, "Updates", 1 },
 
@@ -123,7 +123,7 @@ void pkgi_menu_start(int search_clear, const Config* config)
     menu_entries[12].text = _("Japan");
     menu_entries[13].text = _("USA");
     menu_entries[14].text = _("Options:");
-    menu_entries[15].text = _("Back. DL");
+    menu_entries[15].text = _("ISO");
     menu_entries[16].text = _("Music");
     menu_entries[17].text = _("Updates");
     menu_entries[18].text = _("Refresh...");

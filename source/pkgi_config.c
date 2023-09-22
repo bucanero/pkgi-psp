@@ -113,7 +113,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     config->order = SortAscending;
     config->filter = DbFilterAll;
     config->version_check = 1;
-    config->dl_mode_background = 0;
+    config->install_mode_iso = 0;
     config->music = 1;
     config->content = 0;
     config->allow_refresh = 0;
@@ -184,9 +184,9 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             {
                 config->version_check = 0;
             }
-            else if (pkgi_stricmp(key, "dl_mode_background") == 0)
+            else if (pkgi_stricmp(key, "install_mode_iso") == 0)
             {
-                config->dl_mode_background = 1;
+                config->install_mode_iso = 1;
             }
             else if (pkgi_stricmp(key, "no_music") == 0)
             {
@@ -301,9 +301,9 @@ void pkgi_save_config(const Config* config, const char* update_url, uint32_t upd
         len += pkgi_snprintf(data + len, sizeof(data) - len, "no_version_check 1\n");
     }
 
-    if (config->dl_mode_background)
+    if (config->install_mode_iso)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "dl_mode_background 1\n");
+        len += pkgi_snprintf(data + len, sizeof(data) - len, "install_mode_iso 1\n");
     }
 
     if (!config->music)

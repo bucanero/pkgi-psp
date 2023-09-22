@@ -269,7 +269,7 @@ static int load_database(uint8_t db_id)
         if (pkgi_memequ(EXTDB_ID_SHA256, check, SHA256_DIGEST_SIZE))
         {
             dbf.delimiter = '\t';
-            dbf.total_columns = 10;
+            dbf.total_columns = 11;
             dbf.type = (ColumnType*) external_format;
         }
     }
