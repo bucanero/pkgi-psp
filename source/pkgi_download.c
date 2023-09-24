@@ -3,7 +3,6 @@
 #include "pkgi.h"
 #include "pkgi_utils.h"
 #include "pkgi_sha256.h"
-#include "pdb_data.h"
 
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -11,17 +10,6 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <mini18n.h>
-
-
-#define PDB_HDR_FILENAME	"\x00\x00\x00\xCB"
-#define PDB_HDR_DATETIME	"\x00\x00\x00\xCC"
-#define PDB_HDR_URL			"\x00\x00\x00\xCA"
-#define PDB_HDR_ICON		"\x00\x00\x00\x6A"
-#define PDB_HDR_TITLE		"\x00\x00\x00\x69"
-#define PDB_HDR_SIZE		"\x00\x00\x00\xCE"
-#define PDB_HDR_CONTENT		"\x00\x00\x00\xD9"
-#define PDB_HDR_UNUSED		"\x00\x00\x00\x00"
-#define PDB_HDR_DLSIZE		"\x00\x00\x00\xD0"
 
 
 static char root[256];
@@ -51,160 +39,6 @@ static char dialog_eta[256];
 static uint32_t info_start;
 static uint32_t info_update;
 
-static uint32_t	queue_task_id 	= 10000002;
-static uint32_t	install_task_id = 80000002;
-
-
-static uint32_t get_task_dir_id(const char* dir, uint32_t tid)
-{
-	char path[128] = "";
-	int found = 0;
-    struct stat sb;
-	
-	while (!found) {
-	    pkgi_snprintf(path, sizeof(path), "%s/%d", dir, tid);
-
-        if ((stat(path, &sb) == 0) && S_ISDIR(sb.st_mode)) {
-	    	// there is already a directory with the ID, try again...
-		    tid++;
-		} else {
-		    found = 1;
-		}
-    }
-
-	return tid;
-}
-
-static void write_pdb_string(void* fp, const char* header, const char* pdbstr)
-{
-	unsigned int pdbstr_len = pkgi_strlen(pdbstr) + 1;
-
-	pkgi_write(fp, header, 4);
-	pkgi_write(fp, &pdbstr_len, 4);
-	pkgi_write(fp, &pdbstr_len, 4);
-	pkgi_write(fp, pdbstr, pdbstr_len);
-}
-
-static void write_pdb_int64(void* fp, const char* header, const uint64_t* pdb_u64)
-{
-	pkgi_write(fp, header, 4);
-	pkgi_write(fp, "\x00\x00\x00\x08\x00\x00\x00\x08", 8);
-	pkgi_write(fp, pdb_u64, 8);
-}
-
-static int create_queue_pdb_files(void)
-{
-	// Create files	
-	char srcFile[256];
-	char szIconFile[256];
-	
-	pkgi_snprintf(srcFile, sizeof(srcFile), "%s/%.9s.PNG", pkgi_get_temp_folder(), root + 7);
-	pkgi_snprintf(szIconFile, sizeof(szIconFile), PKGI_QUEUE_FOLDER "/%d/ICON_FILE", queue_task_id);
-	
-	// write - ICON_FILE
-	if (rename(srcFile, szIconFile) != 0)
-	{
-		LOG("Error saving %s", szIconFile);
-		return 0;
-	}
-	
-	pkgi_snprintf(srcFile, sizeof(srcFile), PKGI_QUEUE_FOLDER "/%d/d0.pdb", queue_task_id);
-	void *fpPDB = pkgi_create(srcFile);
-	if(!fpPDB)
-	{
-		LOG("Failed to create file %s", srcFile);
-		return 0;
-	}
-
-	// write - d0.pdb
-	//
-	pkgi_write(fpPDB, pkg_d0top_data, d0top_data_size);
-	
-	// 000000CE - Download expected size (in bytes)
-	write_pdb_int64(fpPDB, PDB_HDR_SIZE, &total_size);
-
-	// 000000CB - PKG file name
-	write_pdb_string(fpPDB, PDB_HDR_FILENAME, root);
-
-	// 000000CC - date/time
-	write_pdb_string(fpPDB, PDB_HDR_DATETIME, "Mon, 11 Dec 2017 11:45:10 GMT");
-
-	// 000000CA - PKG Link download URL
-	write_pdb_string(fpPDB, PDB_HDR_URL, db_item->url);
-
-	// 0000006A - Icon location / path (PNG w/o extension) 
-	write_pdb_string(fpPDB, PDB_HDR_ICON, szIconFile);
-
-	// 00000069 - Display title	
-	char title_str[256];
-	pkgi_snprintf(title_str, sizeof(title_str), "\xE2\x98\x85 %s \x22%s\x22", _("Download"), db_item->name);
-	write_pdb_string(fpPDB, PDB_HDR_TITLE, title_str);
-	
-	// 000000D9 - Content id 
-	write_pdb_string(fpPDB, PDB_HDR_CONTENT, db_item->content);
-	
-	pkgi_write(fpPDB, pkg_d0end_data, pkg_d0end_data_size);
-	pkgi_close(fpPDB);
-	
-	return 1;
-}
-
-static int create_install_pdb_files(const char *path, uint64_t size)
-{
-    void *fp1;
-    void *fp2;
-    char temp_buffer[256];
-
-    pkgi_snprintf(temp_buffer, sizeof(temp_buffer), "%s/%s", path, "d0.pdb");
-    fp1 = pkgi_create(temp_buffer);
-
-    pkgi_snprintf(temp_buffer, sizeof(temp_buffer), "%s/%s", path, "d1.pdb");
-    fp2 = pkgi_create(temp_buffer);
-
-    if(!fp1 || !fp2) {
-	    LOG("Failed to create file %s", temp_buffer);
-	    return 0;
-    }
-    
-	pkgi_write(fp1, install_data_pdb, install_data_pdb_size);
-	pkgi_write(fp2, install_data_pdb, install_data_pdb_size);
-
-	// 000000D0 - Downloaded size (in bytes)
-	write_pdb_int64(fp1, PDB_HDR_DLSIZE, &size);
-	write_pdb_int64(fp2, PDB_HDR_DLSIZE, &size);
-
-	// 000000CE - Package expected size (in bytes)
-	write_pdb_int64(fp1, PDB_HDR_SIZE, &size);
-	write_pdb_int64(fp2, PDB_HDR_SIZE, &size);
-
-	// 00000069 - Display title	
-    pkgi_snprintf(temp_buffer, sizeof(temp_buffer), "\xE2\x98\x85 %s \x22%s\x22", _("Install"), db_item->name);
-	write_pdb_string(fp1, PDB_HDR_TITLE, temp_buffer);
-	write_pdb_string(fp2, PDB_HDR_TITLE, temp_buffer);
-
-	// 000000CB - PKG file name
-	write_pdb_string(fp1, PDB_HDR_FILENAME, root);
-	write_pdb_string(fp2, PDB_HDR_FILENAME, root);
-
-	// 00000000 - Icon location / path (PNG w/o extension) 
-    pkgi_snprintf(temp_buffer, sizeof(temp_buffer), "%s/%s", path, "ICON_FILE");
-	write_pdb_string(fp2, PDB_HDR_UNUSED, temp_buffer);
-
-	// 0000006A - Icon location / path (PNG w/o extension) 
-	write_pdb_string(fp1, PDB_HDR_ICON, temp_buffer);
-	write_pdb_string(fp2, PDB_HDR_ICON, temp_buffer);
-
-	pkgi_write(fp1, pkg_d0end_data, pkg_d0end_data_size);
-	pkgi_write(fp2, pkg_d0end_data, pkg_d0end_data_size);
-
-	pkgi_close(fp1);
-	pkgi_close(fp2);
-
-	pkgi_snprintf(temp_buffer, sizeof(temp_buffer), "%s/%s", path, "f0.pdb");
-	pkgi_save(temp_buffer, temp_buffer, 0);
-
-    return 1;
-}
 
 static void calculate_eta(uint32_t speed)
 {
@@ -291,93 +125,6 @@ static size_t write_verify_data(void *buffer, size_t size, size_t nmemb, void *s
     }
 
     return 0;
-}
-
-static int create_dummy_pkg(void)
-{
-	char dst[256];
-	pkgi_snprintf(dst, sizeof(dst), PKGI_QUEUE_FOLDER "/%d/%s", queue_task_id, root);
-
-	LOG("Creating empty file '%s'...", dst);
-	if (!pkgi_save(dst, "PKGi PSP", 8))
-		return 0;
-
-	download_offset=0;
-	if (0)
-//	if (truncate(dst, download_size) != 0)
-	{
-		LOG("Error truncating (%s)", dst);
-		return 0;
-	}
-
-	LOG("(%s) %d bytes written", dst, download_size);
-	download_offset=download_size;
-    return 1;
-}
-
-static int queue_pkg_task(void)
-{
-    char pszPKGDir[256];
-    int64_t http_length;
-
-    LOG("requesting %s @ %llu", db_item->url, initial_offset);
-    http = pkgi_http_get(db_item->url, db_item->content, initial_offset);
-    if (!http)
-    {
-        pkgi_dialog_error(_("Could not send HTTP request"));
-        return 0;
-    }
-
-    if (!pkgi_http_response_length(http, &http_length))
-    {
-        pkgi_dialog_error(_("HTTP request failed"));
-        return 0;
-    }
-    if (http_length < 0)
-    {
-        pkgi_dialog_error(_("HTTP response has unknown length"));
-        return 0;
-    }
-
-    download_size = http_length;
-    total_size = download_size;
-
-    if (!pkgi_check_free_space(http_length))
-    {
-        pkgi_dialog_error(_("Not enough free space on HDD"));
-        return 0;
-    }
-
-	queue_task_id = get_task_dir_id(PKGI_QUEUE_FOLDER, queue_task_id);
-	pkgi_snprintf(pszPKGDir, sizeof(pszPKGDir), PKGI_QUEUE_FOLDER "/%d", queue_task_id);
-
-	if(!pkgi_mkdirs(pszPKGDir))
-	{
-		pkgi_dialog_error(_("Could not create task directory on HDD."));
-		return 0;
-	}
-
-    LOG("http response length = %lld, total pkg size = %llu", http_length, download_size);
-    info_start = pkgi_time_msec();
-    info_update = pkgi_time_msec() + 500;
-
-    pkgi_dialog_set_progress_title(_("Saving background task..."));
-    pkgi_strncpy(item_name, sizeof(item_name), root);
-    download_resume = 0;
-    
-    if(!create_dummy_pkg())
-	{
-		pkgi_dialog_error(_("Could not create PKG file to HDD."));
-		return 0;
-	}
-    
-	if(!create_queue_pdb_files())
-	{
-		pkgi_dialog_error(_("Could not create task files to HDD."));
-		return 0;
-	}
-
-	return 1;
 }
 
 static void download_start(void)
@@ -652,18 +399,11 @@ int pkgi_download(const DbItem* item, const int background_dl)
 //        if (!create_rif(item->content, item->rap)) goto finish;
     }
 
-    pkgi_dialog_update_progress(_("Downloading icon"), NULL, NULL, 1.f);
-    if (!pkgi_download_icon(item->content)) goto finish;
+//    pkgi_dialog_update_progress(_("Downloading icon"), NULL, NULL, 1.f);
+//    if (!pkgi_download_icon(item->content)) goto finish;
 
-    if (background_dl)
-    {
-        if (!queue_pkg_task()) goto finish;
-    }
-    else
-    {
-        if (!download_pkg_file()) goto finish;
-        if (!check_integrity(item->digest)) goto finish;
-    }
+    if (!download_pkg_file()) goto finish;
+    if (!check_integrity(item->digest)) goto finish;
 
     pkgi_rm(resume_file);
     result = 1;
@@ -685,8 +425,7 @@ int pkgi_install(const char *titleid)
     pkgi_snprintf(pkg_path, sizeof(pkg_path), "%s/%s", pkgi_get_temp_folder(), root);
 	uint64_t fsize = pkgi_get_size(pkg_path);
     
-	install_task_id = get_task_dir_id(PKGI_INSTALL_FOLDER, install_task_id);
-    pkgi_snprintf(pkg_path, sizeof(pkg_path), PKGI_INSTALL_FOLDER "/%d", install_task_id);
+    pkgi_snprintf(pkg_path, sizeof(pkg_path), PKGI_INSTALL_FOLDER "/%d", 0);
 
 	if (!pkgi_mkdirs(pkg_path))
 	{
@@ -703,10 +442,6 @@ int pkgi_install(const char *titleid)
 	{
 	    LOG("Error saving %s", filename);
 	    return 0;
-    }
-
-    if (!create_install_pdb_files(pkg_path, fsize)) {
-        return 0;
     }
 
     pkgi_snprintf(filename, sizeof(filename), "%s/%s", pkg_path, root);
@@ -731,7 +466,7 @@ int pkgi_download_icon(const char* content)
         return 1;
 
     pkgi_snprintf(icon_url, sizeof(icon_url), "%.9s_00", content + 7);
-    sha1_hmac(tmdb_hmac_key, sizeof(tmdb_hmac_key), (uint8_t*) icon_url, 12, hmac);
+//    sha1_hmac(tmdb_hmac_key, sizeof(tmdb_hmac_key), (uint8_t*) icon_url, 12, hmac);
 
     pkgi_snprintf(icon_url, sizeof(icon_url), "http://tmdb.np.dl.playstation.net/tmdb/%.9s_00_%llX%llX%X/ICON0.PNG", 
         content + 7,
@@ -744,14 +479,14 @@ int pkgi_download_icon(const char* content)
     if (!buffer)
     {
         LOG("http request to %s failed", icon_url);
-        return pkgi_save(icon_file, iconfile_data, iconfile_data_size);
+        return pkgi_save(icon_file, "iconfile_data", 1);
     }
 
     if (!sz)
     {
         LOG("icon not found, using default");
         free(buffer);
-        return pkgi_save(icon_file, iconfile_data, iconfile_data_size);
+        return pkgi_save(icon_file, "iconfile_data", 1);
     }
 
     LOG("received %u bytes", sz);

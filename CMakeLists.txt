@@ -96,14 +96,12 @@ create_pbp_file(
 )
 
 add_custom_target(createzip
-  COMMAND @mkdir -p APOLLO/DATA
-  COMMAND @mkdir -p APOLLO/CACHE
-  COMMAND @echo "Downloading appdata.zip ..."
-  COMMAND @rm -fr apollo-psp.zip
-  COMMAND @curl -L "https://bucanero.github.io/apollo-patches/PSP/apollo-psp-update.zip" > APOLLO/CACHE/appdata.zip
-  COMMAND @cp EBOOT.PBP APOLLO/
-  COMMAND @cp ${CMAKE_SOURCE_DIR}/data/fonts/* APOLLO/DATA/
-  COMMAND @zip -r apollo-psp.zip APOLLO/
+  COMMAND @mkdir -p PKGI/LANG
+  COMMAND @cp EBOOT.PBP PKGI/
+  COMMAND @cp ${CMAKE_SOURCE_DIR}/data/fonts/NotoSansJP-Medium.otf PKGI/FONT.OTF
+  COMMAND @cp ${CMAKE_SOURCE_DIR}/data/LANG/* PKGI/LANG/
+  COMMAND @rm -fr pkgi-psp.zip
+  COMMAND @zip -r pkgi-psp.zip PKGI/
 )
 
 add_custom_target(copy

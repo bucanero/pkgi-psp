@@ -25,10 +25,9 @@
 #define PKGI_UNUSED(x) (void)(x)
 
 #define PKGI_APP_FOLDER "."
-#define PKGI_RAP_FOLDER "/dev_hdd0/exdata"
-#define PKGI_TMP_FOLDER "/dev_hdd0/tmp/pkgi"
-#define PKGI_QUEUE_FOLDER "/dev_hdd0/vsh/task"
-#define PKGI_INSTALL_FOLDER "/dev_hdd0/vsh/game_pkg"
+#define PKGI_RAP_FOLDER "ms0:/PKG/RAP"
+#define PKGI_TMP_FOLDER "ms0:/PKG"
+#define PKGI_INSTALL_FOLDER "ms0:/PSP/GAME"
 
 
 #define PKGI_COUNTOF(arr) (sizeof(arr)/sizeof(0[arr]))

@@ -210,7 +210,7 @@ int pkgi_memequ(const void* a, const void* b, uint32_t size)
 static void pkgi_start_debug_log(void)
 {
 #ifdef PKGI_ENABLE_LOGGING
-    dbglogger_init_mode(FILE_LOGGER, "ms0:/apollo-psp.log", 1);
+    dbglogger_init_mode(FILE_LOGGER, "ms0:/pkgi-psp.log", 1);
     LOG("PKGi PSP logging initialized");
 #endif
 }
@@ -642,7 +642,7 @@ void load_ttf_fonts(void)
     ResetFont();
     free_mem = (uint32_t *) AddFontFromBitmapArray((uint8_t *) console_font_8x16, (uint8_t *) texture_mem, 0, 0xFF, PKGI_FONT_WIDTH, PKGI_FONT_HEIGHT, 1, BIT7_FIRST_PIXEL);
 
-    if (TTFLoadFont(0, "./DATA/NotoSansJP-Medium.otf", NULL, 0) < 0)
+    if (TTFLoadFont(0, PKGI_APP_FOLDER "/FONT.OTF", NULL, 0) < 0)
     {
         LOG("[ERROR] Failed to load font!");
         return;
@@ -651,21 +651,94 @@ void load_ttf_fonts(void)
     free_mem = (uint32_t*) init_ttf_table((uint8_t*) free_mem);
 }
 
-static void sys_callback(uint64_t status, uint64_t param, void* userdata)
-{/*
-    switch (status) {
-        case SYSUTIL_EXIT_GAME:
-            pkgi_end();
-            sysProcessExit(1);
-            break;
-        
-        case SYSUTIL_MENU_OPEN:
-        case SYSUTIL_MENU_CLOSE:
-            break;
+static int Net_DisplayNetDialog(void)
+{
+    int ret = 0, done = 0;
+    pspUtilityNetconfData data;
+    struct pspUtilityNetconfAdhoc adhocparam;
 
-        default:
-            break;
-    }*/
+    memset(&adhocparam, 0, sizeof(adhocparam));
+    memset(&data, 0, sizeof(pspUtilityNetconfData));
+
+    data.base.size = sizeof(pspUtilityNetconfData);
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &data.base.language);
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &data.base.buttonSwap); // X/O button swap
+    data.base.graphicsThread = 17;
+    data.base.accessThread = 19;
+    data.base.fontThread = 18;
+    data.base.soundThread = 16;
+    data.action = PSP_NETCONF_ACTION_CONNECTAP;
+    data.hotspot = 0;
+    data.adhocparam = &adhocparam;
+
+    if ((ret = sceUtilityNetconfInitStart(&data)) < 0) {
+        LOG("sceUtilityNetconfInitStart() failed: 0x%08x", ret);
+        return ret;
+    }
+
+    while(!done)
+    {
+        switch(sceUtilityNetconfGetStatus()) {
+            case PSP_UTILITY_DIALOG_NONE:
+                done = 1;
+                break;
+
+            case PSP_UTILITY_DIALOG_VISIBLE:
+                if ((ret = sceUtilityNetconfUpdate(1)) < 0) {
+                    LOG("sceUtilityNetconfUpdate(1) failed: 0x%08x", ret);
+                    done = 1;
+                }
+                break;
+
+            case PSP_UTILITY_DIALOG_QUIT:
+                if ((ret = sceUtilityNetconfShutdownStart()) < 0) {
+                    LOG("sceUtilityNetconfShutdownStart() failed: 0x%08x", ret);
+                    done = 1;
+                }
+                break;
+
+            case PSP_UTILITY_DIALOG_FINISHED:
+                done = 1;
+                break;
+
+            default:
+                break;
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF);
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
+    }
+
+    return 0;
+}
+
+static int Net_isConnected(void)
+{
+    int ret = 0, state = PSP_NET_APCTL_STATE_DISCONNECTED;
+
+    if ((ret  = sceNetApctlGetState(&state)) < 0) {
+        LOG("sceNetApctlGetState() failed: 0x%08x", ret);
+        return 0;
+    }
+
+    return (state == PSP_NET_APCTL_STATE_GOT_IP);
+}
+
+int network_up(void)
+{
+    static int net_up = 0;
+
+    if (net_up)
+        return 1;
+
+    Net_DisplayNetDialog();
+    if (!Net_isConnected())
+        return 0;
+
+    net_up = 1;
+
+    return 1;
 }
 
 static int http_init(void)
@@ -807,7 +880,7 @@ void pkgi_start(void)
     pkgi_mkdirs(PKGI_TMP_FOLDER);
     pkgi_mkdirs(PKGI_RAP_FOLDER);
 
-    init_music();
+//    init_music();
 
     g_time = pkgi_time_msec();
 }
@@ -954,11 +1027,12 @@ int pkgi_dir_exists(const char* path)
 {
     LOG("checking if folder %s exists", path);
 
-    struct stat sb;
-    if ((stat(path, &sb) == 0) && S_ISDIR(sb.st_mode)) {
-        return 1;
+    SceUID id = sceIoDopen(path);
+    if (id < 0) {
+        return 0;
     }
-    return 0;
+    sceIoDclose(id);
+    return 1;
 }
 
 int pkgi_is_installed(const char* content)
@@ -986,7 +1060,7 @@ void pkgi_start_thread(const char* name, pkgi_thread_entry* start)
 {
     SceUID id;
 
-    id = sceKernelCreateThread(name, (SceKernelThreadEntry) start, 0x18, 0x10000, 0, NULL);
+    id = sceKernelCreateThread(name, (SceKernelThreadEntry) start, 0x18, 0x10000, PSP_THREAD_ATTR_USER, NULL);
 	LOG("sysThreadCreate: %s (0x%08x)", name, id);
 
     if (id < 0)
@@ -1603,7 +1677,7 @@ char * pkgi_http_download_buffer(const char* url, uint32_t* buf_size)
     return (chunk.memory);
 }
 
-const char * pkgi_get_user_language()
+const char * pkgi_get_user_language(void)
 {
     int language;
 
