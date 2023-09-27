@@ -8,7 +8,7 @@
 
 This homebrew app allows to download and install `.pkg` files directly on your PSP.
 
-![image](https://user-images.githubusercontent.com/1153055/71187586-1acaf400-225e-11ea-9531-b18af20be10d.png)
+![image](./docs/screenshot.png)
 
 **Comments, ideas, suggestions?** You can [contact me](https://github.com/bucanero/) on [Twitter](https://twitter.com/dparrino) and on [my website](http://www.bucanero.com.ar/).
 
@@ -69,7 +69,7 @@ url_emulators http://www.example.com/emulators.csv
 
 Using this setup, `pkgi.txt` will be updated with `mylist.csv`, `pgi_demos.txt` with `otherlist.csv` , and `pkgi_emulators.txt` with `emulators.csv`.
 
-Next time you open the app, you'll have an additional menu option ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png) called **Refresh**. When you select it, the local databases will be syncronized with the defined URLs.
+Next time you open the app, you'll have an additional menu option ![Triangle](https://github.com/bucanero/pkgi-ps3/raw/master/data/TRIANGLE.png) called **Refresh**. When you select it, the local databases will be syncronized with the defined URLs.
 
 # DB formats
 
@@ -162,10 +162,10 @@ REGION|TITLE|name|url|rap|contentid|DATE|PKG FILENAME|size|checksum
 
 Using the application is simple and straight-forward: 
 
- - Move <kbd>UP</kbd>/<kbd>DOWN</kbd> to select the item you want to download, and press ![X button](https://github.com/bucanero/pkgi-psp/raw/main/data/CROSS.png).
- - To see the item's details, press ![Square](https://github.com/bucanero/pkgi-psp/raw/main/data/SQUARE.png).
- - To sort/filter/search press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png).
-It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png) again to confirm the new settings, or press ![O button](https://github.com/bucanero/pkgi-psp/raw/main/data/CIRCLE.png) to cancel any changes.
+ - Move <kbd>UP</kbd>/<kbd>DOWN</kbd> to select the item you want to download, and press ![X button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CROSS.png).
+ - To see the item's details, press ![Square](https://github.com/bucanero/pkgi-ps3/raw/master/data/SQUARE.png).
+ - To sort/filter/search press ![Triangle](https://github.com/bucanero/pkgi-ps3/raw/master/data/TRIANGLE.png).
+It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkgi-ps3/raw/master/data/TRIANGLE.png) again to confirm the new settings, or press ![O button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CIRCLE.png) to cancel any changes.
 - Press left or right trigger buttons <kbd>L1</kbd>/<kbd>R1</kbd> to move pages up or down.
 - Press <kbd>LEFT</kbd>/<kbd>RIGHT</kbd> buttons to switch between categories.
 

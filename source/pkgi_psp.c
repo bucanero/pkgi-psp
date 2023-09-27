@@ -709,19 +709,13 @@ static int Net_DisplayNetDialog(void)
         SDL_RenderPresent(renderer);
     }
 
-    return 0;
-}
-
-static int Net_isConnected(void)
-{
-    int ret = 0, state = PSP_NET_APCTL_STATE_DISCONNECTED;
-
-    if ((ret  = sceNetApctlGetState(&state)) < 0) {
+    done = PSP_NET_APCTL_STATE_DISCONNECTED;
+    if ((ret = sceNetApctlGetState(&done)) < 0) {
         LOG("sceNetApctlGetState() failed: 0x%08x", ret);
         return 0;
     }
 
-    return (state == PSP_NET_APCTL_STATE_GOT_IP);
+    return (done == PSP_NET_APCTL_STATE_GOT_IP);
 }
 
 int psp_network_up(void)
@@ -731,13 +725,9 @@ int psp_network_up(void)
     if (net_up)
         return 1;
 
-    Net_DisplayNetDialog();
-    if (!Net_isConnected())
-        return 0;
+    net_up = Net_DisplayNetDialog();
 
-    net_up = 1;
-
-    return 1;
+    return net_up;
 }
 
 static int http_init(void)
