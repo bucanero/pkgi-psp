@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <polarssl/aes.h>
+#include <mbedtls/aes.h>
 
 #include "pkgi.h"
 
@@ -45,6 +45,7 @@ typedef struct {
 } PKG_EXT_HEADER;
 */
 
+void install_update_progress(const char *filename, int64_t progress);
 
 static u8 public_key[16], static_public_key[16], xor_key[16], gameid[10];
 
@@ -55,20 +56,20 @@ static const u8 PSPAESKey[16] __attribute__((aligned(16))) = {
 
 static void AES128_ECB_encrypt(uint8_t* input, const uint8_t* key, uint8_t *output)
 {
-	aes_context ctx;
+	mbedtls_aes_context ctx;
 
-	aes_init(&ctx);
-	aes_setkey_enc(&ctx, key, 128);
-	aes_crypt_ecb(&ctx, AES_ENCRYPT, input, output);
+	mbedtls_aes_init(&ctx);
+	mbedtls_aes_setkey_enc(&ctx, key, 128);
+	mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_ENCRYPT, input, output);
 }
 
 static void AES128_ECB_decrypt(uint8_t* input, const uint8_t* key, uint8_t *output)
 {
-	aes_context ctx;
+	mbedtls_aes_context ctx;
 
-	aes_init(&ctx);
-	aes_setkey_dec(&ctx, key, 128);
-	aes_crypt_ecb(&ctx, AES_DECRYPT, input, output);
+	mbedtls_aes_init(&ctx);
+	mbedtls_aes_setkey_dec(&ctx, key, 128);
+	mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_DECRYPT, input, output);
 }
 
 static u32 toU32(char *_buf)
@@ -114,7 +115,6 @@ static void view_pkg_info(const char *file)
 {
 	char buf[256];
 
-	LOG("PSP depackager v%d", DEPACKAGER_VER);
 	LOG("PKG info viewer");
 
 	SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0777);
@@ -161,12 +161,12 @@ static void setiter128(u8 *dst, int size)
 		iter128(dst);
 }
 
-void install_pkg(const char *file)
+int install_psp_pkg(const char *file)
 {
 	char *tmpBuf;
 	char pkgBuf[256];
 	SceIoStat stat;
-	int keysbin = 0;
+	SceOff progress = 0;
 
 	LOG("PSP depackager v%d", DEPACKAGER_VER);
 	LOG("PSP PKG installer");
@@ -176,14 +176,14 @@ void install_pkg(const char *file)
 
 	if (!is_pkg_type_supported(file)) {
 		LOG("Unsupported PKG type detected.");
-		return;
+		return 0;
 	}
 
 	//1 MiB buffer
 	tmpBuf = (char *)malloc(1024 * 1024);
 	if (!tmpBuf) {
 		LOG("Error allocating memory: 0x%08X", 1024 * 1024);
-		return;
+		return 0;
 	}
 
 	SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0777);
@@ -199,7 +199,7 @@ void install_pkg(const char *file)
 		LOG("expected size: %d bytes", toU32(pkgBuf + 0x1C));
 
 		free(tmpBuf);
-		return;
+		return 0;
 	}
 
 	sceIoLseek(fd, toU32(pkgBuf + 8) + 0x48, PSP_SEEK_SET);
@@ -264,7 +264,7 @@ void install_pkg(const char *file)
 		}
 
 		char path[256], tmp[256];
-		snprintf(path, sizeof(path), "ms0:/PSP/GAME/%s/%s", gameid, tmpBuf + 15);
+		snprintf(path, sizeof(path), PKGI_INSTALL_FOLDER "/%s/%s", gameid, tmpBuf + 15);
 
 		char *Path = path;
 		int pl = 0;
@@ -287,8 +287,9 @@ void install_pkg(const char *file)
 			LOG("Currently extracting: %s", path);
 			files_extracted++;
 
-			sceIoLseek(fd, enc_start + file_offset[i], PSP_SEEK_SET);
+			progress = sceIoLseek(fd, enc_start + file_offset[i], PSP_SEEK_SET);
 			sceIoRead(fd, tmpBuf, 1024 * 1024);
+			install_update_progress(path + 14, progress);
 
 			setiter128(public_key, file_offset[i] >> 4);
 
@@ -305,6 +306,7 @@ void install_pkg(const char *file)
 
 					sceIoWrite(dstfd, tmpBuf, 1024 * 1024);
 					sceIoRead(fd, tmpBuf, 1024 * 1024);
+					install_update_progress(path + 14, progress + mincheck);
 
 					LOG("%d/%d bytes", mincheck, file_size[i]);
 				}
@@ -321,10 +323,13 @@ void install_pkg(const char *file)
 			}
 
 			if (mincheck < file_size[i])
+			{
 				sceIoWrite(dstfd, tmpBuf, file_size[i] - mincheck);
+				install_update_progress(path + 14, progress + file_size[i]);
+			}
 
 			sceIoClose(dstfd);
-
+/*
 			int pathlen = strlen(path);
 
 			if (!strcmp(path + pathlen - 9, "EBOOT.PBP")) {
@@ -346,20 +351,21 @@ void install_pkg(const char *file)
 				if (!memcmp(block, "\x00PGD", 4)) {
 //					dumpPS1key(path);
 					keysbin = 1;
+					LOG("PS1 KEYS.BIN dumped");
 				}
 
 				sceIoClose(dstfd);
 			}
+*/
 		}
 	}
 
+	install_update_progress(file + 9, fdsize);
 	sceIoClose(fd);
 	free(tmpBuf);
 
 	LOG("files extracted: %d", files_extracted);
 	LOG("Installation complete");
 
-	if (keysbin)
-		LOG("PS1 KEYS.BIN dumped");
-
+	return 1;
 }

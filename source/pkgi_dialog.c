@@ -290,7 +290,7 @@ void pkgi_do_dialog(pkgi_input* input)
 
         if (local_extra[0])
         {
-            pkgi_draw_text_z(PKGI_DIALOG_HMARGIN + w - (PKGI_DIALOG_PADDING + extraw), PKGI_SCREEN_HEIGHT / 2 - font_height - PKGI_DIALOG_PROCESS_BAR_PADDING, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, local_extra);
+            pkgi_draw_text_z(PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING, PKGI_SCREEN_HEIGHT / 2 + PKGI_DIALOG_PROCESS_BAR_HEIGHT + PKGI_DIALOG_PROCESS_BAR_PADDING, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, local_extra);
         }
 
         if (local_progress < 0)

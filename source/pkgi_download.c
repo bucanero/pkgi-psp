@@ -23,12 +23,14 @@ static uint64_t initial_offset;  // where http download resumes
 static uint64_t download_offset; // pkg absolute offset
 static uint64_t download_size;   // pkg total size (from http request)
 
-static sha256_context sha;
+static mbedtls_sha256_context sha;
 
 static void* item_file;     // current file handle
 static char item_name[256]; // current file name
 static char item_path[256]; // current file path
 
+void progress_screen_refresh(void);
+int install_psp_pkg(const char *file);
 
 // pkg header
 static uint64_t total_size;
@@ -109,6 +111,7 @@ static int update_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ulto
         pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
         info_update = info_now + 500;
     }
+    progress_screen_refresh();
 
     return (pkgi_dialog_is_cancelled());
 }
@@ -120,7 +123,7 @@ static size_t write_verify_data(void *buffer, size_t size, size_t nmemb, void *s
     if (pkgi_write(item_file, buffer, realsize))
     {
         download_offset += realsize;
-        sha256_update(&sha, buffer, realsize);
+        mbedtls_sha256_update(&sha, buffer, realsize);
         return (realsize);
     }
 
@@ -274,7 +277,7 @@ static int check_integrity(const uint8_t* digest)
     }
 
     uint8_t check[SHA256_DIGEST_SIZE];
-    sha256_finish(&sha, check);
+    mbedtls_sha256_finish(&sha, check);
 
     LOG("checking integrity of pkg");
     if (!pkgi_memequ(digest, check, SHA256_DIGEST_SIZE))
@@ -312,52 +315,6 @@ static int create_rap(const char* contentid, const uint8_t* rap)
     return 1;
 }
 
-static int create_rif(const char* contentid, const uint8_t* rap)
-{
-    DIR *d;
-    struct dirent *dir;
-    char path[256];
-    char *lic_path = NULL;
-
-    d = opendir("/dev_hdd0/home/");
-    while ((dir = readdir(d)) != NULL)
-    {
-        if (pkgi_strstr(dir->d_name, ".") == NULL && pkgi_strstr(dir->d_name, "..") == NULL)
-        {
-            pkgi_snprintf(path, sizeof(path)-1, "%s%s%s", "/dev_hdd0/home/", dir->d_name, "/exdata/act.dat");
-            if (pkgi_get_size(path) > 0)
-            {
-                pkgi_snprintf(path, sizeof(path)-1, "%s%s%s", "/dev_hdd0/home/", dir->d_name, "/exdata/");
-            	lic_path = path;
-            	LOG("using folder '%s'", lic_path);
-                break;
-            }
-        }
-    }
-    closedir(d);
-
-    if (!lic_path)
-    {
-    	LOG("Skipping %s.rif: no act.dat file found", contentid);
-    	return 1;
-    }
-
-    LOG("creating %s.rif", contentid);
-    pkgi_dialog_update_progress(_("Creating RIF file"), NULL, NULL, 1.f);
-
-//    if (!rap2rif(rap, contentid, lic_path))
-if(0)
-    {
-        char error[256];
-        pkgi_snprintf(error, sizeof(error), "%s %s.rif", _("Cannot save"), contentid);
-        pkgi_dialog_error(error);
-        return 0;
-    }
-
-    LOG("RIF file created");
-    return 1;
-}
-
 int pkgi_download(const DbItem* item, const int background_dl)
 {
     int result = 0;
@@ -377,8 +334,8 @@ int pkgi_download(const DbItem* item, const int background_dl)
         LOG("cannot load resume file, starting download from scratch");
         pkgi_dialog_set_progress_title(background_dl ? _("Adding background task...") : _("Downloading..."));
         download_resume = 0;
-        sha256_init(&sha);
-        sha256_starts(&sha, 0);
+        mbedtls_sha256_init(&sha);
+        mbedtls_sha256_starts(&sha, 0);
     }
 
     http = NULL;
@@ -417,82 +374,24 @@ finish:
     return result;
 }
 
-int pkgi_install(const char *titleid)
+void install_update_progress(const char *filename, int64_t progress)
 {
-	char pkg_path[256];
-	char filename[256];
-
-    pkgi_snprintf(pkg_path, sizeof(pkg_path), "%s/%s", pkgi_get_temp_folder(), root);
-	uint64_t fsize = pkgi_get_size(pkg_path);
-    
-    pkgi_snprintf(pkg_path, sizeof(pkg_path), PKGI_INSTALL_FOLDER "/%d", 0);
-
-	if (!pkgi_mkdirs(pkg_path))
-	{
-		pkgi_dialog_error(_("Could not create install directory on HDD."));
-		return 0;
-	}
-
-	LOG("Creating .pdb files [%s]", titleid);
-
-	// write - ICON_FILE
-	pkgi_snprintf(filename, sizeof(filename), "%s/ICON_FILE", pkg_path);
-	pkgi_snprintf(resume_file, sizeof(resume_file), "%s/%s.PNG", pkgi_get_temp_folder(), titleid);
-	if (rename(resume_file, filename) != 0)
-	{
-	    LOG("Error saving %s", filename);
-	    return 0;
-    }
-
-    pkgi_snprintf(filename, sizeof(filename), "%s/%s", pkg_path, root);
-    pkgi_snprintf(pkg_path, sizeof(pkg_path), "%s/%s", pkgi_get_temp_folder(), root);
-    
-    LOG("move (%s) -> (%s)", pkg_path, filename);
-    
-	return (rename(pkg_path, filename) == 0);
+    download_offset = progress;
+    pkgi_strncpy(item_name, sizeof(item_name), filename);
+    update_progress(NULL, 0, 0, 0, 0);
 }
 
-int pkgi_download_icon(const char* content)
+int pkgi_install(const char *titleid)
 {
-    char icon_url[256];
-    char icon_file[256];
-    uint8_t hmac[20];
-    uint32_t sz;
+    char pkg_path[256];
 
-    pkgi_snprintf(icon_file, sizeof(icon_file), PKGI_TMP_FOLDER "/%.9s.PNG", content + 7);
-    LOG("package icon file: %s", icon_file);
+    pkgi_snprintf(pkg_path, sizeof(pkg_path), "%s/%s", pkgi_get_temp_folder(), root);
+    download_size = pkgi_get_size(pkg_path);
+    info_start = pkgi_time_msec();
 
-    if (pkgi_get_size(icon_file) > 0)
-        return 1;
+    initial_offset = 0;
+    download_offset = 0;
+    total_size = download_size;
 
-    pkgi_snprintf(icon_url, sizeof(icon_url), "%.9s_00", content + 7);
-//    sha1_hmac(tmdb_hmac_key, sizeof(tmdb_hmac_key), (uint8_t*) icon_url, 12, hmac);
-
-    pkgi_snprintf(icon_url, sizeof(icon_url), "http://tmdb.np.dl.playstation.net/tmdb/%.9s_00_%llX%llX%X/ICON0.PNG", 
-        content + 7,
-        ((uint64_t*)hmac)[0], 
-        ((uint64_t*)hmac)[1], 
-        ((uint32_t*)hmac)[4]);
-
-    char * buffer = pkgi_http_download_buffer(icon_url, &sz);
-
-    if (!buffer)
-    {
-        LOG("http request to %s failed", icon_url);
-        return pkgi_save(icon_file, "iconfile_data", 1);
-    }
-
-    if (!sz)
-    {
-        LOG("icon not found, using default");
-        free(buffer);
-        return pkgi_save(icon_file, "iconfile_data", 1);
-    }
-
-    LOG("received %u bytes", sz);
-
-    pkgi_save(icon_file, buffer, sz);
-    free(buffer);
-
-    return 1;
+    return (install_psp_pkg(pkg_path));
 }

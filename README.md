@@ -15,16 +15,16 @@ This homebrew app allows to download and install `.pkg` files directly on your P
 # Features
 
 * **easy to use:** list available downloads, including searching, filtering, and sorting.
-* **standalone:** no PC required, everything happens directly on the PS3.
-* **automatic downloads:** just choose an item, and it will be downloaded by the app to your HDD (`direct mode`) or queued for background download (`background mode`) using the internal Download Manager.
+* **standalone:** no PC required, everything happens directly on the PSP.
+* **automatic downloads:** just choose an item, and it will be downloaded by the app to your Memory Stick (`ms0:/PKG/`).
 * **resumes interrupted downloads:** you can stop a download at any time, switch applications, and come back to resume the download later.
-* **content activation:** the app can generate `.rif` files for downloaded content (system must be activated)
-* **content updates:** the app can check online for available content updates
 * **localization support:** Finnish, French, German, Italian, Polish, Portuguese, Spanish, Turkish
 
 ### Notes:
-* **queuing** up multiple downloads is only supported when using `background download` mode.
-* **background download tasks** will only show up after rebooting your PS3.
+* **content activation:** downloaded content requires a valid license to run. If your PSP hasn't been activated, you can use one of the following plugins:
+  - [npdrm_free_mod plugin](https://github.com/lusid1/npdrm_free_mod) (PSP/PS1 games only)
+  - [npdrm_free plugin](https://github.com/qwikrazor87/npdrm_free) (PSP/PS1 games and DLCs)
+  - [nploader_mod](https://github.com/lusid1/nploader_mod) (PSP DLCs only)
 
 # Download
 
@@ -36,7 +36,7 @@ See the [latest changes here](CHANGELOG.md).
 
 # Setup instructions
 
-You need to create a [`pkgi.txt`](#sample-db-file) file in `/dev_hdd0/game/NP00PKGI3/USRDIR` that contains the items available for installation.
+You need to create a [`pkgi.txt`](#sample-db-file) file in `ms0:/PSP/GAME/PKGI/` that contains the items available for installation.
 The text database format is user customizable. Check [this section](#user-defined-db-format) to learn how to define your own custom DB format.
 
 ## Multiple databases
@@ -57,7 +57,7 @@ Items on each of these files will be auto-categorized to the file content type. 
 
 ## Online DB update
 
-You can refresh and sync an online database by adding the DB URL(s) to the `config.txt` file in `/dev_hdd0/game/NP00PKGI3/USRDIR`. 
+You can refresh and sync an online database by adding the DB URL(s) to the `config.txt` file in `ms0:/PSP/GAME/PKGI/`. 
 
 For example:
 
@@ -69,7 +69,7 @@ url_emulators http://www.example.com/emulators.csv
 
 Using this setup, `pkgi.txt` will be updated with `mylist.csv`, `pgi_demos.txt` with `otherlist.csv` , and `pkgi_emulators.txt` with `emulators.csv`.
 
-Next time you open the app, you'll have an additional menu option ![Triangle](https://github.com/bucanero/pkgi-psp/raw/master/data/TRIANGLE.png) called **Refresh**. When you select it, the local databases will be syncronized with the defined URLs.
+Next time you open the app, you'll have an additional menu option ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png) called **Refresh**. When you select it, the local databases will be syncronized with the defined URLs.
 
 # DB formats
 
@@ -126,7 +126,7 @@ EP0001-UPDWEBMOD_00-0000000000000000,9,webMAN MOD v1.47.36,Backup Manager,,http:
 
 ## User-defined DB format
 
-To use a custom database format, you need to create a `dbformat.txt` file, and save it on `/dev_hdd0/game/NP00PKGI3/USRDIR`.
+To use a custom database format, you need to create a `dbformat.txt` file, and save it on `ms0:/PSP/GAME/PKGI/`.
 
 The `dbformat.txt` definition file is a 2-line text file:
 * Line 1: the custom delimiter character (e.g.: `;`, `,`, `|`, etc.)
@@ -162,16 +162,16 @@ REGION|TITLE|name|url|rap|contentid|DATE|PKG FILENAME|size|checksum
 
 Using the application is simple and straight-forward: 
 
- - Move <kbd>UP</kbd>/<kbd>DOWN</kbd> to select the item you want to download, and press ![X button](https://github.com/bucanero/pkgi-psp/raw/master/data/CROSS.png).
- - To see the item's details, press ![Square](https://github.com/bucanero/pkgi-psp/raw/master/data/SQUARE.png).
- - To sort/filter/search press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/master/data/TRIANGLE.png).
-It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/master/data/TRIANGLE.png) again to confirm the new settings, or press ![O button](https://github.com/bucanero/pkgi-psp/raw/master/data/CIRCLE.png) to cancel any changes.
+ - Move <kbd>UP</kbd>/<kbd>DOWN</kbd> to select the item you want to download, and press ![X button](https://github.com/bucanero/pkgi-psp/raw/main/data/CROSS.png).
+ - To see the item's details, press ![Square](https://github.com/bucanero/pkgi-psp/raw/main/data/SQUARE.png).
+ - To sort/filter/search press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png).
+It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkgi-psp/raw/main/data/TRIANGLE.png) again to confirm the new settings, or press ![O button](https://github.com/bucanero/pkgi-psp/raw/main/data/CIRCLE.png) to cancel any changes.
 - Press left or right trigger buttons <kbd>L1</kbd>/<kbd>R1</kbd> to move pages up or down.
-- Press <kbd>L2</kbd>/<kbd>R2</kbd> trigger buttons to switch between categories.
+- Press <kbd>LEFT</kbd>/<kbd>RIGHT</kbd> buttons to switch between categories.
 
 ### Notes
 
-- **RAP data:** if the item has `.rap` data, the file will be saved in the `/dev_hdd0/exdata/` folder.
+- **RAP data:** if the item has `.rap` data, the file will be saved in the `ms0:/PKG/RAP/` folder.
 
 
 # Q&A
@@ -186,42 +186,41 @@ It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkg
 
 3. Where to remove interrupted/failed downloads to free up disk space?
    
-   Check the `/dev_hdd0/tmp/pkgi` folder - each download will be in a separate `.pkg` file by its title id. Simply delete the file and start again.
+   Check the `ms0:/PKG/` folder - each download will be in a separate `.pkg` file by its content ID. Simply delete the file and start again.
 
 4. Download speed is too slow!
    
-   Optimization is still pending. If `direct` download is slow, you can use `background download` mode to download files using the internal PS3 Download Manager.
+   Optimization is still pending. (Optional) Set `Power Save Settings` -> `WLAN Power save` -> `OFF` , if you want to speed up the download process.
 
 # Credits
 
 * [Bucanero](http://www.bucanero.com.ar/): Project developer
+
+## Acknowledgements
+
 * [mmozeiko](https://github.com/mmozeiko/): [PS Vita pkgi](https://github.com/mmozeiko/pkgi)
+* [qwikrazor87](https://github.com/qwikrazor87/): [Depackager](https://github.com/bucanero/psptools/tree/master/depackager)
 
 # Building
 
 You need to have installed:
 
-- [PS3 toolchain](https://github.com/bucanero/ps3toolchain)
-- [PSL1GHT](https://github.com/ps3dev/PSL1GHT) SDK
-- [Tiny3D](https://github.com/wargio/Tiny3D) library
-- [YA2D](https://github.com/bucanero/ya2d_ps3) library (an extended version from my repo)
-- [PolarSSL](https://github.com/bucanero/ps3libraries/blob/master/scripts/015-polarssl-1.3.9.sh) library (v1.3.9)
-- [libcurl](https://github.com/bucanero/ps3libraries/blob/master/scripts/016-libcurl-7.64.1.sh) library (v7.64.1)
-- [MikMod](https://github.com/ps3dev/ps3libraries/blob/master/scripts/011-libmikmod-3.1.11.sh) library
+- [PSP SDK](https://github.com/pspdev/)
+- [mbedTLS](https://github.com/pspdev/psp-packages/tree/master/mbedtls) library
+- [cURL](https://github.com/pspdev/psp-packages/tree/master/curl) library
 - [Mini18n](https://github.com/bucanero/mini18n) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library (only required for debug logging)
 
-Run `make` to create a release build. After that, run `make pkg` to create a `.pkg` install file. 
-
-You can also set the environment variable `PS3LOAD=tcp:x.x.x.x` to the PS3's IP address;
-that will allow you to use `make run` and send `pkgi-psp.self` directly to the [PS3LoadX listener](https://github.com/bucanero/ps3loadx).
+Run `cmake . && make` to create a release build. If you want to create a `.zip` file, run `make createzip`.
 
 ## Debugging
 
-To enable debug logging, build PKGi PS3 with `make DEBUGLOG=1`. The application will send debug messages to
-UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your PC:
+To enable debug logging, pass `-DPKGI_ENABLE_DEBUG=ON` argument to cmake. The application will send debug messages to
+UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your computer:
 
     $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+
+You can also set the `PSPIP` environment variable to your PSP's IP address, and use `make send` to upload `EBOOT.PBP` directly to the `ms0:/PSP/GAME/PKGI` folder.
 
 # License
 
@@ -231,7 +230,7 @@ UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat]
 [socat]: http://www.dest-unreach.org/socat/
 [pkgi_downloads]: https://github.com/bucanero/pkgi-psp/releases
 [pkgi_latest]: https://github.com/bucanero/pkgi-psp/releases/latest
-[pkgi_license]: https://github.com/bucanero/pkgi-psp/blob/master/LICENSE
+[pkgi_license]: https://github.com/bucanero/pkgi-psp/blob/main/LICENSE
 [img_downloads]: https://img.shields.io/github/downloads/bucanero/pkgi-psp/total.svg?maxAge=3600
 [img_latest]: https://img.shields.io/github/release/bucanero/pkgi-psp.svg?maxAge=3600
 [img_license]: https://img.shields.io/github/license/bucanero/pkgi-psp.svg?maxAge=2592000

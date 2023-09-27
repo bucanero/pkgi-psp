@@ -15,8 +15,9 @@
 #define MAX_DB_ITEMS 0x4000
 #define MAX_DB_COLUMNS 32
 
-#define EXTDB_ID_LENGTH 115
-#define EXTDB_ID_SHA256 "\xa7\xcd\x5b\x2a\x88\xed\xc9\x6e\x56\x0a\x9e\xb5\x5d\xe6\x70\x40\xbc\xa6\xd9\x53\x0a\x66\xc4\xdc\x78\x34\x6f\x82\x2c\x55\x38\x39"
+#define EXTDB_ID_LENGTH  110
+#define EXTDB_ID_SHA256  "\x7c\xb2\xf4\x8c\x8f\x8b\x4e\xf0\xfa\x1b\x8e\x7c\x03\x82\xc4\x33\xf9\xe9\x5c\x85\x21\xd3\xac\x6f\xad\x5c\x1c\x9f\x33\xf7\xcb\xc8"
+#define EXTDB2_ID_SHA256 "\x72\x55\xb4\xce\x97\x59\x5a\xb6\x66\x6a\xc9\x80\x58\xd3\x22\x95\x8d\x9c\x33\x6a\xbd\x25\x21\x43\x79\x10\xb7\x98\x06\x0e\x40\x85"
 
 static char* db_data = NULL;
 static uint32_t db_total;
@@ -80,6 +81,20 @@ static const ColumnType default_format[] =
 static const ColumnType external_format[] =
 {
     ColumnUnknown,
+    ColumnUnknown,
+    ColumnUnknown,
+    ColumnName,
+    ColumnUrl,
+    ColumnContentId,
+    ColumnUnknown,
+    ColumnRap,
+    ColumnUnknown,
+    ColumnSize,
+    ColumnChecksum
+};
+
+static const ColumnType external_format2[] =
+{
     ColumnUnknown,
     ColumnUnknown,
     ColumnName,
@@ -264,13 +279,19 @@ static int load_database(uint8_t db_id)
     {
         uint8_t check[SHA256_DIGEST_SIZE];
 
-        sha256((uint8_t*)db_data+db_size, EXTDB_ID_LENGTH, check, 0);
+        mbedtls_sha256((uint8_t*)db_data+db_size, EXTDB_ID_LENGTH, check, 0);
 
         if (pkgi_memequ(EXTDB_ID_SHA256, check, SHA256_DIGEST_SIZE))
         {
             dbf.delimiter = '\t';
-            dbf.total_columns = 11;
+            dbf.total_columns = PKGI_COUNTOF(external_format);
             dbf.type = (ColumnType*) external_format;
+        }
+        else if (pkgi_memequ(EXTDB2_ID_SHA256, check, SHA256_DIGEST_SIZE))
+        {
+            dbf.delimiter = '\t';
+            dbf.total_columns = PKGI_COUNTOF(external_format2);
+            dbf.type = (ColumnType*) external_format2;
         }
     }
     else

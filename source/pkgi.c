@@ -19,6 +19,7 @@ typedef enum  {
     StateRefreshing,
     StateUpdateDone,
     StateMain,
+    StateDownload,
     StateTerminate
 } State;
 
@@ -34,6 +35,9 @@ static char refresh_url[MAX_CONTENT_TYPES][256];
 static Config config;
 static Config config_temp;
 
+static pkgi_texture background;
+static pkgi_input input;
+
 static int font_height;
 static int avail_height;
 static int bottom_y;
@@ -42,6 +46,8 @@ static char search_text[256];
 static char error_state[256];
 
 static void reposition(void);
+int psp_network_up(void);
+
 
 static const char* pkgi_get_ok_str(void)
 {
@@ -100,7 +106,7 @@ static int install(const char* content)
     return 1;
 }
 
-static void pkgi_download_thread(void)
+static void pkgi_do_download(void)
 {
     DbItem* item = pkgi_db_get(selected_item);
 
@@ -132,8 +138,6 @@ static void pkgi_download_thread(void)
 
     item->presence = PresenceUnknown;
     state = StateMain;
-
-    pkgi_thread_exit();
 }
 
 static uint32_t friendly_size(uint64_t size)
@@ -247,7 +251,7 @@ static void cb_dialog_download(int res)
 
     item->presence = PresenceMissing;
     pkgi_dialog_start_progress(_("Downloading..."), _("Preparing..."), 0);
-    pkgi_start_thread("download_thread", &pkgi_download_thread);
+    state = StateDownload;
 }
 
 static void pkgi_do_main(pkgi_input* input)
@@ -487,7 +491,7 @@ static void pkgi_do_main(pkgi_input* input)
         {
             LOG("[%.9s] %s - starting to install", item->content + 7, item->name);
             pkgi_dialog_start_progress(_("Downloading..."), _("Preparing..."), 0);
-            pkgi_start_thread("download_thread", &pkgi_download_thread);
+            state = StateDownload;
         }
     }
     else if (input && (input->pressed & PKGI_BUTTON_T))
@@ -504,7 +508,6 @@ static void pkgi_do_main(pkgi_input* input)
 
         DbItem* item = pkgi_db_get(selected_item);
 
-        pkgi_download_icon(item->content);
         pkgi_dialog_details(item, content_type_str(item->type));
     }
 }
@@ -690,6 +693,18 @@ static void pkgi_load_language(const char* lang)
     mini18n_set_locale(path);
 }
 
+void progress_screen_refresh(void)
+{
+    pkgi_update(&input);
+
+    pkgi_draw_background(background);
+    pkgi_do_head();
+    pkgi_do_dialog(&input);
+    pkgi_do_tail();
+
+    pkgi_swap();
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -699,7 +714,7 @@ int main(int argc, char* argv[])
     pkgi_load_config(&config, (char*) &refresh_url, sizeof(refresh_url[0]));
     if (config.music)
     {
-        pkgi_start_music();
+//        pkgi_start_music();
     }
     
     pkgi_load_language(config.language);
@@ -712,20 +727,22 @@ int main(int argc, char* argv[])
     state = StateRefreshing;
     pkgi_start_thread("refresh_thread", &pkgi_refresh_thread);
 
-    pkgi_texture background = pkgi_load_image_buffer(background, png);
+    background = pkgi_load_image_buffer(background, png);
 
     if (config.version_check)
     {
 //        pkgi_start_thread("update_thread", &pkgi_update_check_thread);
     }
 
-    pkgi_input input = {0, 0, 0, 0};
+    memset(&input, 0, sizeof(pkgi_input));
     while (pkgi_update(&input) && (state != StateTerminate))
     {
         pkgi_draw_background(background);
 
         if (state == StateUpdateDone)
         {
+            psp_network_up();
+
             pkgi_db_configure(NULL, &config);
             state = StateMain;
         }
@@ -745,6 +762,10 @@ int main(int argc, char* argv[])
 
         case StateRefreshing:
             pkgi_do_refresh();
+            break;
+
+        case StateDownload:
+            pkgi_do_download();
             break;
 
         case StateMain:

@@ -74,12 +74,9 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${SDL2_LIBRARIES}
   CURL::libcurl
-  apollo
-  polarssl
   dbglogger
   freetype
   png
-  pthread
   pspnet
   pspnet_apctl
   mini18n

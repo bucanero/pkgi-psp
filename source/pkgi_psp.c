@@ -12,7 +12,6 @@
 #include <pspctrl.h>
 #include <pspthreadman.h>
 #include <pspiofilemgr.h>
-//#include <net/net.h>
 
 #include <unistd.h>
 #include <string.h>
@@ -725,7 +724,7 @@ static int Net_isConnected(void)
     return (state == PSP_NET_APCTL_STATE_GOT_IP);
 }
 
-int network_up(void)
+int psp_network_up(void)
 {
     static int net_up = 0;
 
@@ -1255,22 +1254,22 @@ void pkgi_draw_text_z(int x, int y, int z, uint32_t color, const char* text)
                 text++;
                 continue;
             case '\xfa':
-                pkgi_draw_texture_z(tex_buttons.circle, i, j, z, 0.5f);
+                pkgi_draw_texture(tex_buttons.circle, i, j);
                 i += PKGI_FONT_WIDTH;
                 text++;
                 continue;
             case '\xfb':
-                pkgi_draw_texture_z(tex_buttons.cross, i, j, z, 0.5f);
+                pkgi_draw_texture(tex_buttons.cross, i, j);
                 i += PKGI_FONT_WIDTH;
                 text++;
                 continue;
             case '\xfc':
-                pkgi_draw_texture_z(tex_buttons.triangle, i, j, z, 0.5f);
+                pkgi_draw_texture(tex_buttons.triangle, i, j);
                 i += PKGI_FONT_WIDTH;
                 text++;
                 continue;
             case '\xfd':
-                pkgi_draw_texture_z(tex_buttons.square, i, j, z, 0.5f);
+                pkgi_draw_texture(tex_buttons.square, i, j);
                 i += PKGI_FONT_WIDTH;
                 text++;
                 continue;
@@ -1510,7 +1509,7 @@ void pkgi_rm(const char* file)
     if (stat(file, &sb) == 0) {
         LOG("removing file %s", file);
 
-        int err = unlink(file);
+        int err = sceIoRemove(file);
         if (err < 0)
         {
             LOG("error removing %s file, err=0x%08x", err);

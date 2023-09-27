@@ -57,7 +57,7 @@ static MenuEntry menu_entries[] =
 
     { MenuText, "Options:", 0 },
     { MenuMode, "ISO", 1 },
-    { MenuMusic, "Music", 1 },
+//    { MenuMusic, "Music", 1 },
     { MenuUpdate, "Updates", 1 },
 
     { MenuRefresh, "Refresh...", 0 },
