@@ -18,7 +18,7 @@ This homebrew app allows to download and install `.pkg` files directly on your P
 * **standalone:** no PC required, everything happens directly on the PSP.
 * **automatic downloads:** just choose an item, and it will be downloaded by the app to your Memory Stick (`ms0:/PKG/`).
 * **resumes interrupted downloads:** you can stop a download at any time, switch applications, and come back to resume the download later.
-* **localization support:** Finnish, French, German, Italian, Polish, Portuguese, Spanish, Turkish
+* **localization support:** Finnish, French, German, Indonesian, Italian, Polish, Portuguese, Spanish, Turkish
 
 ### Notes:
 * **content activation:** downloaded content requires a valid license to run. If your PSP hasn't been activated, you can use one of the following plugins:

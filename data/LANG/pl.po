@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 17:56-0300\n"
 "PO-Revision-Date: 2023-02-05 20:08-0300\n"
 "Last-Translator: DEX357\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Instalowanie"
+msgid "Installing..."
+msgstr "Instalowanie..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Wyjdz"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Pomyslnie pobrano aktualizacje PKGi PS3"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Pomyslnie pobrano aktualizacje PKGi PSP"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -375,20 +375,16 @@ msgid "Options:"
 msgstr "Opcje:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
-msgstr "DL w tle"
+msgid "ISO"
+msgstr ""
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "Muzyka"
+msgid "Keep PKGs"
+msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "Odswiez..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "DL bezposr."
 
 #msgid "---translated by---"
 #msgstr "DEX357, PoliPyc, olokos"

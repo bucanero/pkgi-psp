@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 19:00-0300\n"
 "PO-Revision-Date: 2021-10-09 19:00-0300\n"
 "Last-Translator: Trollizas\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Installiere"
+msgid "Installing..."
+msgstr "Installiere..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Ausgang"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Erfolgreich PKGi PS3 update gedownloaded"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Erfolgreich PKGi PSP update gedownloaded"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -374,17 +374,13 @@ msgid "Options:"
 msgstr "Einstellungen:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
-msgstr "Hint. DL"
+msgid "ISO"
+msgstr ""
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "Musik"
+msgid "Keep PKGs"
+msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "Aktualiseiren..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "Direkt DL"

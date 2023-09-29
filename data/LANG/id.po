@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 19:00-0300\n"
 "PO-Revision-Date: 2021-10-09 19:00-0300\n"
 "Last-Translator: Fajar Maulana\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Menginstal"
+msgid "Installing..."
+msgstr "Menginstal..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Keluar"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Pembaruan PKGi PS3 berhasil terunduh"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Pembaruan PKGi PSP berhasil terunduh"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -371,23 +371,19 @@ msgstr "USA"
 
 #: pkgi_menu.c:115
 msgid "Options:"
-msgstr "Pilihan"
+msgstr "Pilihan:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
-msgstr "Unduhan latar"
+msgid "ISO"
+msgstr ""
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "Musik"
+msgid "Keep PKGs"
+msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "Segarkan..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "Unduh langsung"
 
 #msgid "---translated by---"
 #msgstr "Jeremy Belpois (Fajar Maulana)"

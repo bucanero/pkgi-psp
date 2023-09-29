@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 17:56-0300\n"
 "PO-Revision-Date: 2021-10-09 18:00-0300\n"
 "Last-Translator: bucanero\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Instalando"
+msgid "Installing..."
+msgstr "Instalando..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Salir"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Actualizaci¢n de PKGi PS3 descargada"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Actualizaci¢n de PKGi PSP descargada"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -232,7 +232,7 @@ msgstr "Instalar"
 
 #: pkgi_download.c:216 pkgi_download.c:220 pkgi_download.c:226
 msgid "ETA"
-msgstr "Tiempo restante"
+msgstr "Estimado"
 
 #: pkgi_download.c:310 pkgi_download.c:392
 msgid "Could not send HTTP request"
@@ -375,20 +375,16 @@ msgid "Options:"
 msgstr "Opciones:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
-msgstr "2do plano"
+msgid "ISO"
+msgstr "Formato ISO"
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "M£sica"
+msgid "Keep PKGs"
+msgstr "Guardar PKGs"
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "Actualizar..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "DL directo"
 
 #msgid "---translated by---"
 #msgstr "bucanero"

@@ -1,11 +1,11 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PKGi PSP\n"
-"POT-Creation-Date: 2021-10-09 19:00-0300\n"
-"PO-Revision-Date: 2021-10-09 19:00-0300\n"
-"Last-Translator: Algol\n"
+"POT-Creation-Date: 2023-09-29 19:00-0300\n"
+"PO-Revision-Date: 2023-09-29 19:00-0300\n"
+"Last-Translator: \n"
 "Language-Team: \n"
-"Language: fr\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,52 +19,52 @@ msgstr ""
 
 #: pkgi.c:82
 msgid "Installing..."
-msgstr "Installation en cours..."
+msgstr ""
 
 #: pkgi.c:82
 msgid "Please wait..."
-msgstr "Attendez SVP..."
+msgstr ""
 
 #: pkgi.c:94
 msgid "Installation failed"
-msgstr "Installation a ÇchouÇe"
+msgstr ""
 
 #: pkgi.c:118
 msgid "Successfully downloaded"
-msgstr "TÇlÇchargement rÇussi"
+msgstr ""
 
 #: pkgi.c:122
 msgid "Task successfully queued (reboot to start)"
-msgstr "TÉche mise en file d'attente avec succäs (redÇmarrage pour dÇmarrer)"
+msgstr ""
 
 #: pkgi.c:163
 msgid "GB"
-msgstr "Go"
+msgstr ""
 
 #: pkgi.c:167 pkgi_download.c:249
 msgid "MB"
-msgstr "Mo"
+msgstr ""
 
 #: pkgi.c:171 pkgi.c:504 pkgi_download.c:253
 msgid "KB"
-msgstr "Ko"
+msgstr ""
 
 #: pkgi.c:175
 msgid "B"
-msgstr "o"
+msgstr ""
 
 #: pkgi.c:185
 #, c-format
 msgid "pkg requires %u %s free space, but only %u %s available"
-msgstr "pkg requiert %u %s d'espace libre, mais seulement %u %s disponible"
+msgstr ""
 
 #: pkgi.c:225 pkgi_menu.c:109 pkgi_menu.c:121
 msgid "All"
-msgstr "Tous"
+msgstr ""
 
 #: pkgi.c:226 pkgi_menu.c:122
 msgid "Games"
-msgstr "Jeux"
+msgstr ""
 
 #: pkgi.c:227 pkgi_menu.c:123
 msgid "DLCs"
@@ -72,7 +72,7 @@ msgstr ""
 
 #: pkgi.c:228 pkgi_menu.c:124
 msgid "Themes"
-msgstr "Thämes"
+msgstr ""
 
 #: pkgi.c:229 pkgi_menu.c:125
 msgid "Avatars"
@@ -80,75 +80,75 @@ msgstr ""
 
 #: pkgi.c:230 pkgi_menu.c:126
 msgid "Demos"
-msgstr "DÇmos"
+msgstr ""
 
 #: pkgi.c:231 pkgi_menu.c:118 pkgi_menu.c:127
 msgid "Updates"
-msgstr "Mises Ö jour"
+msgstr ""
 
 #: pkgi.c:232 pkgi_menu.c:128
 msgid "Emulators"
-msgstr "Emulateurs"
+msgstr ""
 
 #: pkgi.c:233 pkgi_menu.c:129
 msgid "Apps"
-msgstr "Applications"
+msgstr ""
 
 #: pkgi.c:234 pkgi_menu.c:130
 msgid "Tools"
-msgstr "Outils"
+msgstr ""
 
 #: pkgi.c:235
 msgid "Unknown"
-msgstr "Inconnu"
+msgstr ""
 
 #: pkgi.c:253
 msgid "Exit to XMB?"
-msgstr "Sortir vers XMB?"
+msgstr ""
 
 #: pkgi.c:436
 msgid "No items!"
-msgstr "pas d'article!"
+msgstr ""
 
 #: pkgi.c:462
 msgid "Item already installed, download again?"
-msgstr "Article dÇjÖ installÇ, tÇlÇcharger Ö nouveau?"
+msgstr ""
 
 #: pkgi.c:471 pkgi_download.c:372 pkgi_download.c:652
 msgid "Downloading..."
-msgstr "TÇlÇchargement..."
+msgstr ""
 
 #: pkgi.c:471 pkgi.c:674
 msgid "Preparing..."
-msgstr "PrÇparation en cours..."
+msgstr ""
 
 #: pkgi.c:504 pkgi.c:508
 msgid "Refreshing"
-msgstr "Rafraåchissement en cours"
+msgstr ""
 
 #: pkgi.c:563 pkgi.c:567
 msgid "Count"
-msgstr "Compter"
+msgstr ""
 
 #: pkgi.c:575
 msgid "Free"
-msgstr "Vide"
+msgstr ""
 
 #: pkgi.c:585
 msgid "Select"
-msgstr "SÇlection"
+msgstr ""
 
 #: pkgi.c:585
 msgid "Close"
-msgstr "Fermer"
+msgstr ""
 
 #: pkgi.c:585
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #: pkgi.c:589 pkgi_download.c:136
 msgid "Download"
-msgstr "Chargement"
+msgstr ""
 
 #: pkgi.c:589
 msgid "Menu"
@@ -156,78 +156,78 @@ msgstr ""
 
 #: pkgi.c:589
 msgid "Details"
-msgstr "DÇtails"
+msgstr ""
 
 #: pkgi.c:589
 msgid "Exit"
-msgstr "Sortie"
+msgstr ""
 
 #: pkgi.c:678
 msgid "Successfully downloaded PKGi PSP update"
-msgstr "Mise Ö jour PKGi PSP tÇlÇchargÇe avec succäs"
+msgstr ""
 
 #: pkgi.c:1051
 msgid "Search"
-msgstr "Recherche"
+msgstr ""
 
 #: pkgi_db.c:145 pkgi_db.c:153
 msgid "failed to download list from"
-msgstr "Çchec du tÇlÇchargement de la liste depuis"
+msgstr ""
 
 #: pkgi_db.c:159
 msgid "list is too large... check for newer pkgi version!"
-msgstr "la liste est trop longue... vÇrifiez la nouvelle version de pkgi!"
+msgstr ""
 
 #: pkgi_db.c:187
 msgid "list is empty... check the DB server"
-msgstr "la liste est vide... vÇrifiez le serveur de base de donnÇes"
+msgstr ""
 
 #: pkgi_db.c:390
 msgid "ERROR: pkgi.txt file(s) missing or bad config.txt file"
-msgstr "ERREURˇ: fichier(s) pkgi.txt manquant(s) ou fichier config.txt incorrect"
+msgstr ""
 
 #: pkgi_dialog.c:80
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #: pkgi_dialog.c:108
 msgid "ERROR"
-msgstr "ERREUR"
+msgstr ""
 
 #: pkgi_dialog.c:169
 msgid "Failed to download the update list"
-msgstr "êchec du tÇlÇchargement de la liste des mises Ö jour"
+msgstr ""
 
 #: pkgi_dialog.c:174
 msgid "update(s) loaded"
-msgstr "Mise Ö jour(s) chargÇe(s)"
+msgstr ""
 
 #: pkgi_dialog.c:319
 #, c-format
 msgid "press %s to cancel"
-msgstr "appuyez sur %s pour annuler"
+msgstr ""
 
 #: pkgi_dialog.c:333
 #, c-format
 msgid "press %s to close - %s to scan updates"
-msgstr "appuyez sur %s pour fermer - %s to scan updates"
+msgstr ""
 
 #: pkgi_dialog.c:365
 msgid "Enter"
-msgstr "Entrer"
+msgstr ""
 
 #: pkgi_dialog.c:365
 msgid "Back"
-msgstr "Arriäre"
+msgstr ""
 
 #: pkgi_dialog.c:367
 #, c-format
 msgid "press %s to close"
-msgstr "appuyez sur %s pour fermer"
+msgstr ""
 
 #: pkgi_download.c:183
 msgid "Install"
-msgstr "Installation"
+msgstr ""
 
 #: pkgi_download.c:216 pkgi_download.c:220 pkgi_download.c:226
 msgid "ETA"
@@ -235,127 +235,127 @@ msgstr ""
 
 #: pkgi_download.c:310 pkgi_download.c:392
 msgid "Could not send HTTP request"
-msgstr "Impossible d'envoyer la requàte HTTP"
+msgstr ""
 
 #: pkgi_download.c:317 pkgi_download.c:399
 msgid "HTTP request failed"
-msgstr "êchec de la requàte HTTP"
+msgstr ""
 
 #: pkgi_download.c:322 pkgi_download.c:404
 msgid "HTTP response has unknown length"
-msgstr "La rÇponse HTTP a une longueur inconnue"
+msgstr ""
 
 #: pkgi_download.c:331
 msgid "Not enough free space on HDD"
-msgstr "Pas assez d'espace libre sur le disque dur"
+msgstr ""
 
 #: pkgi_download.c:340
 msgid "Could not create task directory on HDD."
-msgstr "Impossible de crÇer le rÇpertoire des tÉches sur le disque dur"
+msgstr ""
 
 #: pkgi_download.c:348
 msgid "Saving background task..."
-msgstr "Enregistrement de la tÉche en arriäre-plan..."
+msgstr ""
 
 #: pkgi_download.c:354
 msgid "Could not create PKG file to HDD."
-msgstr "Impossible de crÇer le fichier PKG sur le disque dur"
+msgstr ""
 
 #: pkgi_download.c:360
 msgid "Could not create task files to HDD."
-msgstr "Impossible de crÇer des fichiers de tÉches sur le disque dur"
+msgstr ""
 
 #: pkgi_download.c:425
 msgid "HTTP download error"
-msgstr "Erreur de tÇlÇchargement HTTP"
+msgstr ""
 
 #: pkgi_download.c:432
 msgid "HTTP connection closed"
-msgstr "Connexion HTTP fermÇe"
+msgstr ""
 
 #: pkgi_download.c:445
 msgid "failed to write to"
-msgstr "omis d'Çcrire Ö"
+msgstr ""
 
 #: pkgi_download.c:465
 msgid "cannot create folder"
-msgstr "impossible de crÇer un dossier"
+msgstr ""
 
 #: pkgi_download.c:475
 msgid "cannot create file"
-msgstr "impossible de crÇer un fichier"
+msgstr ""
 
 #: pkgi_download.c:490
 msgid "cannot resume file"
-msgstr "impossible de reprendre le fichier"
+msgstr ""
 
 #: pkgi_download.c:562
 msgid "pkg integrity failed, try downloading again"
-msgstr "êchec de l'intÇgritÇ de pkg, essayez Ö nouveau de tÇlÇcharger"
+msgstr ""
 
 #: pkgi_download.c:573
 msgid "Creating RAP file"
-msgstr "CrÇation fichier RAP"
+msgstr ""
 
 #: pkgi_download.c:581 pkgi_download.c:626
 msgid "Cannot save"
-msgstr "Impossible de sauver"
+msgstr ""
 
 #: pkgi_download.c:621
 msgid "Creating RIF file"
-msgstr "CrÇation fichier RIF"
+msgstr ""
 
 #: pkgi_download.c:646
 msgid "Resuming..."
-msgstr "Reprise..."
+msgstr ""
 
 #: pkgi_download.c:652
 msgid "Adding background task..."
-msgstr "Ajout d'une tÉche en arriäre-plan..."
+msgstr ""
 
 #: pkgi_download.c:675
 msgid "Downloading icon"
-msgstr "TÇlÇchargement icìne"
+msgstr ""
 
 #: pkgi_download.c:713
 msgid "Could not create install directory on HDD."
-msgstr "Impossible de crÇer le rÇpertoire d'installation sur le disque dur"
+msgstr ""
 
 #: pkgi_menu.c:102
 msgid "Search..."
-msgstr "Rechercher..."
+msgstr ""
 
 #: pkgi_menu.c:103
 msgid "Sort by:"
-msgstr "Tri par:"
+msgstr ""
 
 #: pkgi_menu.c:104
 msgid "Title"
-msgstr "Titre"
+msgstr ""
 
 #: pkgi_menu.c:105
 msgid "Region"
-msgstr "RÇgion"
+msgstr ""
 
 #: pkgi_menu.c:106
 msgid "Name"
-msgstr "Nom"
+msgstr ""
 
 #: pkgi_menu.c:107
 msgid "Size"
-msgstr "Taille"
+msgstr ""
 
 #: pkgi_menu.c:108
 msgid "Content:"
-msgstr "Contenu:"
+msgstr ""
 
 #: pkgi_menu.c:110
 msgid "Regions:"
-msgstr "RÇgions:"
+msgstr ""
 
 #: pkgi_menu.c:111
 msgid "Asia"
-msgstr "Asie"
+msgstr ""
 
 #: pkgi_menu.c:112
 msgid "Europe"
@@ -363,7 +363,7 @@ msgstr ""
 
 #: pkgi_menu.c:113
 msgid "Japan"
-msgstr "Japon"
+msgstr ""
 
 #: pkgi_menu.c:114
 msgid "USA"
@@ -383,4 +383,4 @@ msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
-msgstr "Rafraåchir..."
+msgstr ""

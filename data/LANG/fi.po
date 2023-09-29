@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-23 06:12-0300\n"
 "PO-Revision-Date: 2021-10-09 19:00-0300\n"
 "Last-Translator: sestain\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Asennetaan"
+msgid "Installing..."
+msgstr "Asennetaan..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Poistu"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Onnistuneesti ladattu PKGi PS3 p„ivitys"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Onnistuneesti ladattu PKGi PSP p„ivitys"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -374,17 +374,13 @@ msgid "Options:"
 msgstr "Asetukset:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
+msgid "ISO"
 msgstr "Takaisin DL"
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "Musiikki"
+msgid "Keep PKGs"
+msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "P„ivit„..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "Suora DL"

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PKGi PS3\n"
+"Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-11 23:10-0300\n"
 "PO-Revision-Date: 2021-10-11 0:25-0300\n"
 "Last-Translator: Jeferson Silva and Phoenixx1202\n"
@@ -18,8 +18,8 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: pkgi.c:82
-msgid "Installing"
-msgstr "Instalando"
+msgid "Installing..."
+msgstr "Instalando..."
 
 #: pkgi.c:82
 msgid "Please wait..."
@@ -163,8 +163,8 @@ msgid "Exit"
 msgstr "Sair"
 
 #: pkgi.c:678
-msgid "Successfully downloaded PKGi PS3 update"
-msgstr "Atualiza‡ao de PKGi PS3 baixada com sucesso"
+msgid "Successfully downloaded PKGi PSP update"
+msgstr "Atualiza‡ao de PKGi PSP baixada com sucesso"
 
 #: pkgi.c:1051
 msgid "Search"
@@ -375,20 +375,16 @@ msgid "Options:"
 msgstr "Op‡oes:"
 
 #: pkgi_menu.c:116
-msgid "Back. DL"
-msgstr "2ø Plano"
+msgid "ISO"
+msgstr ""
 
 #: pkgi_menu.c:117
-msgid "Music"
-msgstr "M£sica"
+msgid "Keep PKGs"
+msgstr ""
 
 #: pkgi_menu.c:119
 msgid "Refresh..."
 msgstr "Recarregar..."
-
-#: pkgi_menu.c:326
-msgid "Direct DL"
-msgstr "Baixar Direto"
 
 #msgid "---translated by---"
 #msgstr "Jeferson Silva and Phoenixx1202"
