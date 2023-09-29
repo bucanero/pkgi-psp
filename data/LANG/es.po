@@ -23,7 +23,7 @@ msgstr "Instalando..."
 
 #: pkgi.c:82
 msgid "Please wait..."
-msgstr "Por favor espere..."
+msgstr "Espere por favor..."
 
 #: pkgi.c:94
 msgid "Installation failed"
