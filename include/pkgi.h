@@ -5,7 +5,7 @@
 #include "pkgi_dialog.h"
 
 #define PKGI_UPDATE_URL     "https://api.github.com/repos/bucanero/pkgi-psp/releases/latest"
-#define PKGI_VERSION        "0.5.0"
+#define PKGI_VERSION        "0.8.0"
 
 #define PKGI_BUTTON_SELECT 0x000001
 #define PKGI_BUTTON_START  0x000008
@@ -71,7 +71,7 @@ const char* pkgi_get_temp_folder(void);
 const char* pkgi_get_app_folder(void);
 int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
-int pkgi_install(const char* titleid);
+int pkgi_install(int remove_pkg);
 
 uint32_t pkgi_time_msec();
 
@@ -134,9 +134,6 @@ typedef struct pkgi_texture_s* pkgi_texture;
        extern const uint8_t _binary_data_##name##_##type##_size; \
        pkgi_load_##type##_raw((void*) &_binary_data_##name##_##type##_start , (int) &_binary_data_##name##_##type##_size); \
     })
-
-void pkgi_start_music(void);
-void pkgi_stop_music(void);
 
 pkgi_texture loadPngTexture(const char* path, const void* buffer);
 pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size);

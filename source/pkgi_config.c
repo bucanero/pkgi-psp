@@ -114,7 +114,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     config->filter = DbFilterAll;
     config->version_check = 1;
     config->install_mode_iso = 0;
-    config->music = 1;
+    config->keep_pkg = 0;
     config->content = 0;
     config->allow_refresh = 0;
     pkgi_strncpy(config->language, 3, pkgi_get_user_language());
@@ -188,9 +188,9 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             {
                 config->install_mode_iso = 1;
             }
-            else if (pkgi_stricmp(key, "no_music") == 0)
+            else if (pkgi_stricmp(key, "keep_pkg") == 0)
             {
-                config->music = 0;
+                config->keep_pkg = 1;
             }
             else if (pkgi_stricmp(key, "content") == 0)
             {
@@ -306,9 +306,9 @@ void pkgi_save_config(const Config* config, const char* update_url, uint32_t upd
         len += pkgi_snprintf(data + len, sizeof(data) - len, "install_mode_iso 1\n");
     }
 
-    if (!config->music)
+    if (config->keep_pkg)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "no_music 1\n");
+        len += pkgi_snprintf(data + len, sizeof(data) - len, "keep_pkg 1\n");
     }
 
     char path[256];

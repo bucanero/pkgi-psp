@@ -85,14 +85,10 @@ static void pkgi_refresh_thread(void)
 static int install(const char* content)
 {
     LOG("installing...");
-    pkgi_dialog_start_progress(_("Installing"), _("Please wait..."), -1);
-
-    char titleid[10];
-    pkgi_memcpy(titleid, content + 7, 9);
-    titleid[9] = 0;
+    pkgi_dialog_start_progress(_("Installing..."), _("Please wait..."), -1);
 
     pkgi_dialog_allow_close(0);
-    int ok = pkgi_install(titleid);
+    int ok = pkgi_install(!config.keep_pkg);
     pkgi_dialog_allow_close(1);
 
     if (!ok)
@@ -116,9 +112,9 @@ static void pkgi_do_download(void)
     pkgi_sleep(300);
 
     pkgi_lock_process();
-    if (pkgi_download(item, config.install_mode_iso))
+    if (pkgi_download(item))
     {
-        if (!config.install_mode_iso)
+        if (1)//(!config.install_mode_iso)
         {
             install(item->content);
             pkgi_dialog_message(item->name, _("Successfully downloaded"));
@@ -675,7 +671,7 @@ static void pkgi_update_check_thread(void)
 
     pkgi_dialog_start_progress(update_item.name, _("Preparing..."), 0);
     
-    if (pkgi_download(&update_item, 0) && install(update_item.content))
+    if (pkgi_download(&update_item) && install(update_item.content))
     {
         pkgi_dialog_message(update_item.name, _("Successfully downloaded PKGi PSP update"));
         LOG("update downloaded!");
@@ -712,11 +708,6 @@ int main(int argc, char* argv[])
     pkgi_start();
 
     pkgi_load_config(&config, (char*) &refresh_url, sizeof(refresh_url[0]));
-    if (config.music)
-    {
-//        pkgi_start_music();
-    }
-    
     pkgi_load_language(config.language);
     pkgi_dialog_init();
     
@@ -811,11 +802,6 @@ int main(int argc, char* argv[])
                     pkgi_db_configure(search_active ? search_text : NULL, &config_temp);
                     reposition();
                 }
-                else if (config_temp.music != new_config.music)
-                {
-                    config_temp = new_config;
-                    (config_temp.music ? pkgi_start_music() : pkgi_stop_music());
-                }
             }
             else
             {
@@ -836,10 +822,6 @@ int main(int argc, char* argv[])
                     {
                         pkgi_db_configure(search_active ? search_text : NULL, &config);
                         reposition();
-                    }
-                    if (config_temp.music != config.music)
-                    {
-                        (config.music ? pkgi_start_music() : pkgi_stop_music());
                     }
                 }
                 else if (mres == MenuResultAccept)

@@ -89,7 +89,7 @@ typedef struct Config {
     uint32_t filter;
     uint8_t version_check;
     uint8_t install_mode_iso;
-    uint8_t music;
+    uint8_t keep_pkg;
     uint8_t allow_refresh;
     char language[3];
 } Config;

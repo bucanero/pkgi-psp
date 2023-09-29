@@ -315,7 +315,7 @@ static int create_rap(const char* contentid, const uint8_t* rap)
     return 1;
 }
 
-int pkgi_download(const DbItem* item, const int background_dl)
+int pkgi_download(const DbItem* item)
 {
     int result = 0;
 
@@ -332,7 +332,7 @@ int pkgi_download(const DbItem* item, const int background_dl)
     else
     {
         LOG("cannot load resume file, starting download from scratch");
-        pkgi_dialog_set_progress_title(background_dl ? _("Adding background task...") : _("Downloading..."));
+        pkgi_dialog_set_progress_title(_("Downloading..."));
         download_resume = 0;
         mbedtls_sha256_init(&sha);
         mbedtls_sha256_starts(&sha, 0);
@@ -353,11 +353,7 @@ int pkgi_download(const DbItem* item, const int background_dl)
     if (item->rap)
     {
         if (!create_rap(item->content, item->rap)) goto finish;
-//        if (!create_rif(item->content, item->rap)) goto finish;
     }
-
-//    pkgi_dialog_update_progress(_("Downloading icon"), NULL, NULL, 1.f);
-//    if (!pkgi_download_icon(item->content)) goto finish;
 
     if (!download_pkg_file()) goto finish;
     if (!check_integrity(item->digest)) goto finish;
@@ -381,17 +377,22 @@ void install_update_progress(const char *filename, int64_t progress)
     update_progress(NULL, 0, 0, 0, 0);
 }
 
-int pkgi_install(const char *titleid)
+int pkgi_install(int remove_pkg)
 {
-    char pkg_path[256];
+    int result;
 
-    pkgi_snprintf(pkg_path, sizeof(pkg_path), "%s/%s", pkgi_get_temp_folder(), root);
-    download_size = pkgi_get_size(pkg_path);
+    download_size = pkgi_get_size(item_path);
     info_start = pkgi_time_msec();
 
     initial_offset = 0;
     download_offset = 0;
     total_size = download_size;
 
-    return (install_psp_pkg(pkg_path));
+    result = install_psp_pkg(item_path);
+    if (result && remove_pkg)
+    {
+        pkgi_rm(item_path);
+    }
+
+    return (result);
 }

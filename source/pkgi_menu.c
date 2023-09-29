@@ -25,7 +25,7 @@ typedef enum {
     MenuRefresh,
     MenuMode,
     MenuUpdate,
-    MenuMusic,
+    MenuKeepPkg,
     MenuContent
 } MenuType;
 
@@ -57,7 +57,7 @@ static MenuEntry menu_entries[] =
 
     { MenuText, "Options:", 0 },
     { MenuMode, "ISO", 1 },
-//    { MenuMusic, "Music", 1 },
+    { MenuKeepPkg, "Keep PKGs", 1 },
     { MenuUpdate, "Updates", 1 },
 
     { MenuRefresh, "Refresh...", 0 },
@@ -124,7 +124,7 @@ void pkgi_menu_start(int search_clear, const Config* config)
     menu_entries[13].text = _("USA");
     menu_entries[14].text = _("Options:");
     menu_entries[15].text = _("ISO");
-    menu_entries[16].text = _("Music");
+    menu_entries[16].text = _("Keep PKGs");
     menu_entries[17].text = _("Updates");
     menu_entries[18].text = _("Refresh...");
 
@@ -258,9 +258,9 @@ int pkgi_do_menu(pkgi_input* input)
         {
             menu_config.install_mode_iso ^= menu_entries[menu_selected].value;
         }
-        else if (type == MenuMusic)
+        else if (type == MenuKeepPkg)
         {
-            menu_config.music ^= menu_entries[menu_selected].value;
+            menu_config.keep_pkg ^= menu_entries[menu_selected].value;
         }
         else if (type == MenuUpdate)
         {
@@ -344,10 +344,10 @@ int pkgi_do_menu(pkgi_input* input)
             pkgi_snprintf(text, sizeof(text), "%s %s",
                 menu_config.install_mode_iso == entry->value ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF, entry->text);            
         }
-        else if (type == MenuMusic)
+        else if (type == MenuKeepPkg)
         {
             pkgi_snprintf(text, sizeof(text), "%s %s",
-                menu_config.music == entry->value ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF, entry->text);            
+                menu_config.keep_pkg == entry->value ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF, entry->text);            
         }
         else if (type == MenuUpdate)
         {

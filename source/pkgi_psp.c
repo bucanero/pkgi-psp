@@ -8,7 +8,7 @@
 #include <pspnet_inet.h>
 #include <pspnet_apctl.h>
 #include <psputility.h>
-#include <pspaudio.h>
+#include <psppower.h>
 #include <pspctrl.h>
 #include <pspthreadman.h>
 #include <pspiofilemgr.h>
@@ -32,8 +32,6 @@ static uint32_t * texture_mem;      // Pointers to texture memory
 static uint32_t * free_mem;         // Pointer after last texture
 
 
-//#include <mikmod.h>
-//#include "mikmod_loader.h"
 #define YA2D_DEFAULT_Z 1
 #define AUDIO_SAMPLES 256
 
@@ -229,86 +227,6 @@ int pkgi_ok_button(void)
 int pkgi_cancel_button(void)
 {
     return g_cancel_button;
-}
-
-static void music_update_thread(void)
-{
-while(0)//    while (module)
-    {
-//        MikMod_Update();
-        usleep(1000);
-    }
-    pkgi_thread_exit();
-}
-
-static void init_music(void)
-{
-    // Open a handle to audio output device
-    audio = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_AUDIO_SAMPLE_ALIGN(AUDIO_SAMPLES), PSP_AUDIO_FORMAT_STEREO);
-    if (audio < 0)
-    {
-        LOG("[ERROR] Failed to open audio on main port");
-//        return audio;
-    }
-
-//    MikMod_InitThreads();
-    
-    /* register the driver and S3M module loader *
-    MikMod_RegisterDriver(&drv_psl1ght);    
-    MikMod_RegisterLoader(&load_s3m);
-    
-    /* init the library *
-    md_mode |= DMODE_SOFT_MUSIC | DMODE_STEREO | DMODE_HQMIXER | DMODE_16BITS;
-    
-    if (MikMod_Init("")) {
-        LOG("Could not initialize sound: %s", MikMod_strerror(MikMod_errno));
-        return;
-    }
-    
-    LOG("Init %s", MikMod_InfoDriver());
-    LOG("Loader %s", MikMod_InfoLoader());
-    
-    mem_reader = new_mikmod_mem_reader(haiku_s3m_bin, haiku_s3m_bin_size);
-    module = Player_LoadGeneric(mem_reader, 64, 0);
-    module->wrap = TRUE;
-*/
-    pkgi_start_thread("music_thread", &music_update_thread);
-}
-
-void pkgi_start_music(void)
-{
-    /*
-    if (module) {
-        /* start module *
-        LOG("Playing %s", module->songname);
-        //Player_Start(module);
-    } else
-        LOG("Could not load module: %s", MikMod_strerror(MikMod_errno));
-        */
-}
-
-void pkgi_stop_music(void)
-{
-    LOG("Stop music");
-//    Player_Stop();
-}
-
-static void end_music(void)
-{
-//    Player_Free(module);
-    
-//    delete_mikmod_mem_reader(mem_reader);
-//    MikMod_Exit();
-}
-
-static int sys_game_get_temperature(int sel, uint32_t *temperature) 
-{
-    uint32_t temp;
-/*  
-    lv2syscall2(383, (uint64_t) sel, (uint64_t) &temp); 
-    *temperature = (temp >> 24);
-    return_to_user_prog(int);
-*/
 }
 
 int pkgi_dialog_lock(void)
@@ -931,8 +849,6 @@ void pkgi_swap(void)
 
 void pkgi_end(void)
 {
-    end_music();
-
     curl_global_cleanup();
     pkgi_stop_debug_log();
 
@@ -952,19 +868,6 @@ void pkgi_end(void)
     //sysProcessExit(0);
 }
 
-int pkgi_get_temperature(uint8_t cpu)
-{
-    static uint32_t t = 0;
-
-    if (t++ % 0x100 == 0)
-    {
-        sys_game_get_temperature(0, &cpu_temp_c[0]);
-        sys_game_get_temperature(1, &cpu_temp_c[1]);
-    }
-
-    return cpu_temp_c[cpu];
-}
-
 int pkgi_temperature_is_high(void)
 {
     return ((cpu_temp_c[0] >= 70 || cpu_temp_c[1] >= 70));
@@ -980,8 +883,9 @@ uint64_t pkgi_get_free_space(void)
     if (t++ % 0x1000 == 0)
     {
         cmd.dev_inf = &inf;
+        memset(&inf, 0, sizeof(SceDevInf));
         sceIoDevctl("ms0:", SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0);
-        freeSize = inf.freeClusters * inf.sectorCount * inf.sectorSize;
+        freeSize = ((uint64_t) inf.freeClusters) * ((uint64_t) inf.sectorCount) * ((uint64_t) inf.sectorSize);
     }
 
     return (freeSize);
@@ -1027,7 +931,7 @@ int pkgi_dir_exists(const char* path)
 int pkgi_is_installed(const char* content)
 {    
     char path[128];
-    snprintf(path, sizeof(path), "ms0:/PSP/GAME/%.9s", content + 7);
+    snprintf(path, sizeof(path), PKGI_INSTALL_FOLDER "/%.9s", content + 7);
 
     return (pkgi_dir_exists(path));
 }
@@ -1127,30 +1031,20 @@ int pkgi_save(const char* name, const void* data, uint32_t size)
 
 void pkgi_lock_process(void)
 {
-/*
-    if (__atomic_fetch_add(&g_power_lock, 1, __ATOMIC_SEQ_CST) == 0)
+    LOG("locking power button");
+    if (scePowerLock(0) < 0)
     {
-        LOG("locking shell functionality");
-        if (sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
-        {
-            LOG("sceShellUtilLock failed");
-        }
+        LOG("scePowerLock failed");
     }
-    */
 }
 
 void pkgi_unlock_process(void)
 {
-/*
-    if (__atomic_sub_fetch(&g_power_lock, 1, __ATOMIC_SEQ_CST) == 0)
+    LOG("unlocking power button");
+    if (scePowerUnlock(0) < 0)
     {
-        LOG("unlocking shell functionality");
-        if (sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN) < 0)
-        {
-            LOG("sceShellUtilUnlock failed");
-        }
+        LOG("scePowerUnlock failed");
     }
-    */
 }
 
 pkgi_texture pkgi_load_png_raw(const void* data, uint32_t size)

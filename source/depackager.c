@@ -1,8 +1,4 @@
 #include <pspkernel.h>
-#include <psputilsforkernel.h>
-#include <psploadexec_kernel.h>
-#include <pspctrl.h>
-#include <pspdebug.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -215,19 +211,11 @@ int install_psp_pkg(const char *file)
 	sceIoLseek(fd, enc_start, PSP_SEEK_SET);
 	sceIoRead(fd, tmpBuf, files * 32);
 
-#ifdef MAGICGATE
-	sceMgrAESInit();
-#endif
-
 	int i, j, pspcount = 0;
 	u32 file_name[files], file_name_len[files], file_offset[files], file_size[files], is_file[files];
 
 	for (i = 0; i < (int)(files * 2); i++) {
-#ifdef MAGICGATE
-		sceMgrAESEncrypt(xor_key, public_key, 16, PSPAESKey, NULL);
-#else
 		AES128_ECB_encrypt(public_key, PSPAESKey, xor_key);
-#endif
 		xor128((u8 *)(tmpBuf + (i * 16)), (u8 *)(tmpBuf + (i * 16)), xor_key);
 		iter128(public_key);
 	}
@@ -254,11 +242,7 @@ int install_psp_pkg(const char *file)
 		setiter128(public_key, file_name[i] >> 4);
 
 		for (j = 0; j < (namesize >> 4); j++) {
-#ifdef MAGICGATE
-			sceMgrAESEncrypt(xor_key, public_key, 16, PSPAESKey, NULL);
-#else
 			AES128_ECB_encrypt(public_key, PSPAESKey, xor_key);
-#endif
 			xor128((u8 *)(tmpBuf + (j * 16)), (u8 *)(tmpBuf + (j * 16)), xor_key);
 			iter128(public_key);
 		}
@@ -311,11 +295,7 @@ int install_psp_pkg(const char *file)
 					LOG("%d/%d bytes", mincheck, file_size[i]);
 				}
 
-#ifdef MAGICGATE
-				sceMgrAESEncrypt(xor_key, public_key, 16, PSPAESKey, NULL);
-#else
 				AES128_ECB_encrypt(public_key, PSPAESKey, xor_key);
-#endif
 				xor128((u8 *)((tmpBuf + (j * 16)) - mincheck), (u8 *)((tmpBuf + (j * 16)) - mincheck), xor_key);
 				iter128(public_key);
 
