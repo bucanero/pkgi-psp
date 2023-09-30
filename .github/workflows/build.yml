@@ -1,0 +1,62 @@
+name: Build package
+
+on: [ push, pull_request, workflow_dispatch ]
+
+jobs:
+  build_pkg:
+    runs-on: ubuntu-22.04
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Checkout mini18n
+      uses: actions/checkout@v3
+      with:
+        repository: bucanero/mini18n
+        path: mini18n
+
+    - name: Checkout dbglogger
+      uses: actions/checkout@v3
+      with:
+        repository: bucanero/dbglogger
+        path: dbglogger
+        ref: psp-web
+
+      # install latest pspdev sdk
+    - name: Download PSP SDK
+      run: |
+        curl -sL https://github.com/pspdev/pspdev/releases/download/latest/pspdev-ubuntu-latest.tar.gz | tar xvz -C ./
+        sed -i '64s/.*/INTERFACE_LINK_LIBRARIES "${PSPDEV}\/psp\/lib\/libmbedtls.a;${PSPDEV}\/psp\/lib\/libmbedx509.a;${PSPDEV}\/psp\/lib\/libmbedcrypto.a;ZLIB::ZLIB"/' pspdev/psp/lib/cmake/CURL/CURLTargets.cmake
+
+    - name: Set env vars
+      run: |
+        echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+        echo "PSPDEV=${GITHUB_WORKSPACE}/pspdev" >> $GITHUB_ENV
+        echo "${GITHUB_WORKSPACE}/pspdev/bin" >> $GITHUB_PATH
+
+    - name: Install dbglogger
+      working-directory: dbglogger
+      run: |
+        make -f Makefile.psp install
+
+    - name: Install mini18n
+      working-directory: mini18n
+      run: |
+        psp-cmake .
+        make mini18n-static
+        cp src/libmini18n.a ${PSPDEV}/psp/lib/
+        cp src/mini18n.h ${PSPDEV}/psp/include/
+
+    - name: Build PKGi App Package
+      run: |
+        psp-cmake . -DCMAKE_BUILD_TYPE=Release
+        make
+        make createzip
+
+    - name: Push package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: pkgi-psp-build_${{ env.sha_name }}
+        path: pkgi-psp.zip
+        if-no-files-found: error
