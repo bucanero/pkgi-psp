@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 17:56-0300\n"
-"PO-Revision-Date: 2021-10-09 18:00-0300\n"
+"PO-Revision-Date: 2023-09-30 18:00-0300\n"
 "Last-Translator: bucanero\n"
 "Language-Team: \n"
 "Language: es\n"
@@ -35,7 +35,7 @@ msgstr "Descarga exitosa"
 
 #: pkgi.c:122
 msgid "Task successfully queued (reboot to start)"
-msgstr "Tarea agregada a la cola \n (reiniciar para comenzar)"
+msgstr "Tarea agregada a la cola (reiniciar para comenzar)"
 
 #: pkgi.c:163
 msgid "GB"
@@ -56,7 +56,7 @@ msgstr ""
 #: pkgi.c:185
 #, c-format
 msgid "pkg requires %u %s free space, but only %u %s available"
-msgstr "pkg Espacio requerido %u %s, espacio disponible %u %s "
+msgstr "Espacio requerido .pkg %u %s, espacio disponible %u %s"
 
 #: pkgi.c:225 pkgi_menu.c:109 pkgi_menu.c:121
 msgid "All"
@@ -112,7 +112,7 @@ msgstr "Sin Registros"
 
 #: pkgi.c:462
 msgid "Item already installed, download again?"
-msgstr "Juego instalado, descargar nuevamente?"
+msgstr "Item ya instalado, descargar nuevamente?"
 
 #: pkgi.c:471 pkgi_download.c:372 pkgi_download.c:652
 msgid "Downloading..."
@@ -232,7 +232,7 @@ msgstr "Instalar"
 
 #: pkgi_download.c:216 pkgi_download.c:220 pkgi_download.c:226
 msgid "ETA"
-msgstr "ETA"
+msgstr "Estimado"
 
 #: pkgi_download.c:310 pkgi_download.c:392
 msgid "Could not send HTTP request"
