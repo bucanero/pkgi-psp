@@ -44,7 +44,7 @@ jobs:
       working-directory: mini18n
       run: |
         psp-cmake .
-        make
+        make mini18n-static
         cp src/libmini18n.a ${PSPDEV}/psp/lib/
         cp src/mini18n.h ${PSPDEV}/psp/include/
 
