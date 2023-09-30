@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PKGi PSP\n"
 "POT-Creation-Date: 2021-10-09 17:56-0300\n"
-"PO-Revision-Date: 2021-10-09 18:00-0300\n"
+"PO-Revision-Date: 2023-09-30 18:00-0300\n"
 "Last-Translator: bucanero\n"
 "Language-Team: \n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr "Instalando..."
 
 #: pkgi.c:82
 msgid "Please wait..."
-msgstr "Por favor espere..."
+msgstr "Espere por favor..."
 
 #: pkgi.c:94
 msgid "Installation failed"
@@ -56,7 +56,7 @@ msgstr ""
 #: pkgi.c:185
 #, c-format
 msgid "pkg requires %u %s free space, but only %u %s available"
-msgstr "pkg requiere %u %s espacio libre, pero solo %u %s disponible"
+msgstr "Espacio requerido .pkg %u %s, espacio disponible %u %s"
 
 #: pkgi.c:225 pkgi_menu.c:109 pkgi_menu.c:121
 msgid "All"
@@ -108,7 +108,7 @@ msgstr "Salir al XMB?"
 
 #: pkgi.c:436
 msgid "No items!"
-msgstr "No hay ¡tems!"
+msgstr "Sin Registros"
 
 #: pkgi.c:462
 msgid "Item already installed, download again?"
@@ -184,7 +184,7 @@ msgstr "lista vac¡a... revisar el servidor DB"
 
 #: pkgi_db.c:390
 msgid "ERROR: pkgi.txt file(s) missing or bad config.txt file"
-msgstr "ERROR: no hay archivo(s) pkgi.txt o archivo config.txt invalido"
+msgstr "ERROR: no hay archivo(s) pkgi.txt o config.txt invalido"
 
 #: pkgi_dialog.c:80
 msgid "Content"
@@ -210,7 +210,7 @@ msgstr "presiona %s para cancelar"
 #: pkgi_dialog.c:333
 #, c-format
 msgid "press %s to close - %s to scan updates"
-msgstr "presiona %s para cerrar - %s para buscar actualizaciones"
+msgstr "presiona %s (cerrar) - %s (buscar actualizaciones)"
 
 #: pkgi_dialog.c:365
 msgid "Enter"
@@ -248,11 +248,11 @@ msgstr "Respuesta HTTP de tama¤o desconocido"
 
 #: pkgi_download.c:331
 msgid "Not enough free space on HDD"
-msgstr "No hay espacio suficiente en el disco"
+msgstr "Espacio insuficiente"
 
 #: pkgi_download.c:340
 msgid "Could not create task directory on HDD."
-msgstr "No se puede crear el directorio en el disco"
+msgstr "No se puede crear el directorio"
 
 #: pkgi_download.c:348
 msgid "Saving background task..."
@@ -260,11 +260,11 @@ msgstr "Guardando tarea en segundo plano..."
 
 #: pkgi_download.c:354
 msgid "Could not create PKG file to HDD."
-msgstr "No se puede crear el archivo PKG en el disco"
+msgstr "No se puede crear el archivo PKG"
 
 #: pkgi_download.c:360
 msgid "Could not create task files to HDD."
-msgstr "No se puede crear el archivo de tarea en el disco"
+msgstr "No se puede crear el archivo de tarea"
 
 #: pkgi_download.c:425
 msgid "HTTP download error"
@@ -292,7 +292,7 @@ msgstr "No se puede resumir el archivo"
 
 #: pkgi_download.c:562
 msgid "pkg integrity failed, try downloading again"
-msgstr "Error de integridad de pkg, descargue nuevamente"
+msgstr "Error al validar el pkg, descargue nuevamente"
 
 #: pkgi_download.c:573
 msgid "Creating RAP file"
@@ -320,7 +320,7 @@ msgstr "Descargando icono"
 
 #: pkgi_download.c:713
 msgid "Could not create install directory on HDD."
-msgstr "No se puede crear carpeta de instalaci¢n en el disco"
+msgstr "No se puede crear carpeta de instalaci¢n"
 
 #: pkgi_menu.c:102
 msgid "Search..."
@@ -387,4 +387,4 @@ msgid "Refresh..."
 msgstr "Actualizar..."
 
 #msgid "---translated by---"
-#msgstr "bucanero"
+#msgstr "bucanero/SAandT"
