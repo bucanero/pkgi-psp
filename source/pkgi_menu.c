@@ -49,6 +49,8 @@ static MenuEntry menu_entries[] =
     { MenuText, "Content:", 0 },
     { MenuContent, "All", 0 },
 
+    { MenuRefresh, "Refresh...", 0 },
+
     { MenuText, "Regions:", 0 },
     { MenuFilter, "Asia", DbFilterRegionASA },
     { MenuFilter, "Europe", DbFilterRegionEUR },
@@ -56,11 +58,9 @@ static MenuEntry menu_entries[] =
     { MenuFilter, "USA", DbFilterRegionUSA },
 
     { MenuText, "Options:", 0 },
-    { MenuMode, "ISO", 1 },
+    { MenuMode, "Digital", 0 },
     { MenuKeepPkg, "Keep PKGs", 1 },
     { MenuUpdate, "Updates", 1 },
-
-    { MenuRefresh, "Refresh...", 0 },
 };
 
 static MenuEntry content_entries[] = 
@@ -69,12 +69,19 @@ static MenuEntry content_entries[] =
     { MenuFilter, "Games", DbFilterContentGame },
     { MenuFilter, "DLCs", DbFilterContentDLC },
     { MenuFilter, "Themes", DbFilterContentTheme },
-    { MenuFilter, "Avatars", DbFilterContentAvatar },
+    { MenuFilter, "PSX", DbFilterContentPSX },
     { MenuFilter, "Demos", DbFilterContentDemo },
     { MenuFilter, "Updates", DbFilterContentUpdate },
     { MenuFilter, "Emulators", DbFilterContentEmulator },
     { MenuFilter, "Apps", DbFilterContentApp },
     { MenuFilter, "Tools", DbFilterContentTool }
+};
+
+static MenuEntry format_entries[] = 
+{
+    { MenuMode, "Digital", 0 },
+    { MenuMode, "ISO", 1 },
+    { MenuMode, "CSO", 2 }
 };
 
 int pkgi_menu_is_open(void)
@@ -117,27 +124,31 @@ void pkgi_menu_start(int search_clear, const Config* config)
     menu_entries[6].text = _("Size");
     menu_entries[7].text = _("Content:");
     menu_entries[8].text = _("All");
-    menu_entries[9].text = _("Regions:");
-    menu_entries[10].text = _("Asia");
-    menu_entries[11].text = _("Europe");
-    menu_entries[12].text = _("Japan");
-    menu_entries[13].text = _("USA");
-    menu_entries[14].text = _("Options:");
-    menu_entries[15].text = _("ISO");
-    menu_entries[16].text = _("Keep PKGs");
-    menu_entries[17].text = _("Updates");
-    menu_entries[18].text = _("Refresh...");
+    menu_entries[9].text = _("Refresh...");
+    menu_entries[10].text = _("Regions:");
+    menu_entries[11].text = _("Asia");
+    menu_entries[12].text = _("Europe");
+    menu_entries[13].text = _("Japan");
+    menu_entries[14].text = _("USA");
+    menu_entries[15].text = _("Options:");
+    menu_entries[16].text = _("ISO");
+    menu_entries[17].text = _("Keep PKGs");
+    menu_entries[18].text = _("Updates");
 
     content_entries[0].text = _("All");
     content_entries[1].text = _("Games");
     content_entries[2].text = _("DLCs");
     content_entries[3].text = _("Themes");
-    content_entries[4].text = _("Avatars");
+    content_entries[4].text = _("PSX");
     content_entries[5].text = _("Demos");
     content_entries[6].text = _("Updates");
     content_entries[7].text = _("Emulators");
     content_entries[8].text = _("Apps");
     content_entries[9].text = _("Tools");
+
+    format_entries[0].text = _("Digital");
+    format_entries[1].text = _("ISO");
+    format_entries[2].text = _("CSO");
 
     if (pkgi_menu_width)
         return;
@@ -256,7 +267,9 @@ int pkgi_do_menu(pkgi_input* input)
         }
         else if (type == MenuMode)
         {
-            menu_config.install_mode_iso ^= menu_entries[menu_selected].value;
+            menu_config.install_mode_iso++;
+            if (menu_config.install_mode_iso == PKGI_COUNTOF(format_entries))
+                menu_config.install_mode_iso = 0;
         }
         else if (type == MenuKeepPkg)
         {
@@ -308,10 +321,10 @@ int pkgi_do_menu(pkgi_input* input)
             y += font_height;
         }
 
-        int x = PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN) + PKGI_MENU_LEFT_PADDING + (i > 8 ? pkgi_menu_width/2 : 0);
-        if (i == 9)
+        int x = PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN) + PKGI_MENU_LEFT_PADDING + (i > 9 ? pkgi_menu_width/2 : 0);
+        if (i == 10)
         {
-            y -= font_height*9;
+            y -= font_height*10;
         }
 
         char text[64];
@@ -341,8 +354,7 @@ int pkgi_do_menu(pkgi_input* input)
         }
         else if (type == MenuMode)
         {
-            pkgi_snprintf(text, sizeof(text), "%s %s",
-                menu_config.install_mode_iso == entry->value ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF, entry->text);            
+            pkgi_snprintf(text, sizeof(text), PKGI_UTF8_CLEAR " %s", format_entries[menu_config.install_mode_iso].text);
         }
         else if (type == MenuKeepPkg)
         {

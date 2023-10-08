@@ -6,12 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-//#include <zlib.h>
 #include <SDL2/SDL.h>
 
 #include "pkgi.h"
 #include "libfont.h"
-//#include "menu.h"
 #include "ttf_render.h"
 #include "pkgi_style.h"
 

@@ -46,7 +46,7 @@ You can also load additional database files:
 - `pkgi_games.txt`
 - `pkgi_dlcs.txt`
 - `pkgi_themes.txt`
-- `pkgi_avatars.txt`
+- `pkgi_psx.txt`
 - `pkgi_demos.txt`
 - `pkgi_updates.txt`
 - `pkgi_emulators.txt`
@@ -117,7 +117,7 @@ EP0001-UPDWEBMOD_00-0000000000000000,9,webMAN MOD v1.47.36,Backup Manager,,http:
 | 1	| Game               | `pkgi_games.txt`
 | 2	| DLC                | `pkgi_dlcs.txt`
 | 3	| Theme              | `pkgi_themes.txt`
-| 4	| Avatar             | `pkgi_avatars.txt`
+| 4	| PSX                | `pkgi_psx.txt`
 | 5	| Demo               | `pkgi_demos.txt`
 | 6	| Update             | `pkgi_updates.txt`
 | 7	| Emulator           | `pkgi_emulators.txt`
@@ -198,7 +198,7 @@ It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkg
 
 ## Acknowledgements
 
-* [mmozeiko](https://github.com/mmozeiko/): [PS Vita pkgi](https://github.com/mmozeiko/pkgi)
+* [mmozeiko](https://github.com/mmozeiko/): [pkgi](https://github.com/mmozeiko/pkgi) (PS Vita), [pkg2zip](https://github.com/mmozeiko/pkg2zip)
 * [qwikrazor87](https://github.com/qwikrazor87/): [Depackager](https://github.com/bucanero/psptools/tree/master/depackager)
 
 # Building

@@ -18,6 +18,7 @@
 #define EXTDB_ID_LENGTH  110
 #define EXTDB_ID_SHA256  "\x7c\xb2\xf4\x8c\x8f\x8b\x4e\xf0\xfa\x1b\x8e\x7c\x03\x82\xc4\x33\xf9\xe9\x5c\x85\x21\xd3\xac\x6f\xad\x5c\x1c\x9f\x33\xf7\xcb\xc8"
 #define EXTDB2_ID_SHA256 "\x72\x55\xb4\xce\x97\x59\x5a\xb6\x66\x6a\xc9\x80\x58\xd3\x22\x95\x8d\x9c\x33\x6a\xbd\x25\x21\x43\x79\x10\xb7\x98\x06\x0e\x40\x85"
+#define EXTDB3_ID_SHA256 "\x56\x1a\x55\x30\xd5\xad\xfd\x00\x3c\x40\x42\x6a\xe2\x79\x30\xd6\xcc\xc0\x93\xbd\x1c\xf6\x43\xe7\x9c\x74\xf1\xfb\x8e\xf9\xf4\x7c"
 
 static char* db_data = NULL;
 static uint32_t db_total;
@@ -107,6 +108,19 @@ static const ColumnType external_format2[] =
     ColumnChecksum
 };
 
+static const ColumnType external_format3[] =
+{
+    ColumnUnknown,
+    ColumnUnknown,
+    ColumnName,
+    ColumnUrl,
+    ColumnContentId,
+    ColumnUnknown,
+    ColumnUnknown,
+    ColumnSize,
+    ColumnChecksum
+};
+
 static uint8_t hexvalue(char ch)
 {
     if (ch >= '0' && ch <= '9')
@@ -160,7 +174,7 @@ static size_t write_update_data(void *buffer, size_t size, size_t nmemb, void *s
     return (realsize);
 }
 
-int update_database(const char* update_url, const char* path, char* error, uint32_t error_size)
+static int update_database(const char* update_url, const char* path, char* error, uint32_t error_size)
 {
     db_total = 0;
     db_size = 0;
@@ -292,6 +306,16 @@ static int load_database(uint8_t db_id)
             dbf.delimiter = '\t';
             dbf.total_columns = PKGI_COUNTOF(external_format2);
             dbf.type = (ColumnType*) external_format2;
+        }
+        else
+        {
+            mbedtls_sha256((uint8_t*)db_data+db_size, EXTDB_ID_LENGTH - 9, check, 0);
+            if (pkgi_memequ(EXTDB3_ID_SHA256, check, SHA256_DIGEST_SIZE))
+            {
+                dbf.delimiter = '\t';
+                dbf.total_columns = PKGI_COUNTOF(external_format3);
+                dbf.type = (ColumnType*) external_format3;
+            }
         }
     }
     else
@@ -442,7 +466,7 @@ static int matches(GameRegion region, ContentType content, uint32_t filter)
         && ((content == ContentGame && (filter & DbFilterContentGame))
         || (content == ContentDLC && (filter & DbFilterContentDLC))
         || (content == ContentTheme && (filter & DbFilterContentTheme))
-        || (content == ContentAvatar && (filter & DbFilterContentAvatar))
+        || (content == ContentPSX && (filter & DbFilterContentPSX))
         || (content == ContentDemo && (filter & DbFilterContentDemo))
         || (content == ContentUpdate && (filter & DbFilterContentUpdate))
         || (content == ContentEmulator && (filter & DbFilterContentEmulator))

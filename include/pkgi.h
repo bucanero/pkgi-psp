@@ -25,9 +25,9 @@
 #define PKGI_UNUSED(x) (void)(x)
 
 #define PKGI_APP_FOLDER "."
-#define PKGI_RAP_FOLDER "ms0:/PKG/RAP"
-#define PKGI_TMP_FOLDER "ms0:/PKG"
-#define PKGI_INSTALL_FOLDER "ms0:/PSP/GAME"
+#define PKGI_RAP_FOLDER "/PKG/RAP"
+#define PKGI_TMP_FOLDER "/PKG"
+#define PKGI_INSTALL_FOLDER "/PSP/GAME"
 
 
 #define PKGI_COUNTOF(arr) (sizeof(arr)/sizeof(0[arr]))
@@ -62,8 +62,8 @@ int pkgi_update(pkgi_input* input);
 void pkgi_swap(void);
 void pkgi_end(void);
 
-int pkgi_temperature_is_high(void);
-int pkgi_get_temperature(uint8_t cpu);
+const char* pkgi_get_storage_device(void);
+void update_install_progress(const char *filename, int64_t progress);
 
 uint64_t pkgi_get_free_space(void);
 const char* pkgi_get_config_folder(void);
@@ -71,7 +71,7 @@ const char* pkgi_get_temp_folder(void);
 const char* pkgi_get_app_folder(void);
 int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
-int pkgi_install(int remove_pkg);
+int pkgi_install(int iso_mode, int remove_pkg);
 
 uint32_t pkgi_time_msec();
 

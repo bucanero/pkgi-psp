@@ -31,6 +31,7 @@ static char item_path[256]; // current file path
 
 void progress_screen_refresh(void);
 int install_psp_pkg(const char *file);
+int convert_psp_pkg_iso(const char* pkg_arg, int cso);
 
 // pkg header
 static uint64_t total_size;
@@ -240,7 +241,7 @@ static int download_pkg_file(void)
     int result = 0;
 
     pkgi_strncpy(item_name, sizeof(item_name), root);
-    pkgi_snprintf(item_path, sizeof(item_path), "%s/%s", pkgi_get_temp_folder(), root);
+    pkgi_snprintf(item_path, sizeof(item_path), "%s%s/%s", pkgi_get_storage_device(), pkgi_get_temp_folder(), root);
     LOG("downloading %s", item_name);
 
     if (download_resume)
@@ -301,7 +302,7 @@ static int create_rap(const char* contentid, const uint8_t* rap)
     pkgi_dialog_update_progress(_("Creating RAP file"), NULL, NULL, 1.f);
 
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.rap", PKGI_RAP_FOLDER, contentid);
+    pkgi_snprintf(path, sizeof(path), "%s%s/%s.rap", pkgi_get_storage_device(), PKGI_RAP_FOLDER, contentid);
 
     if (!pkgi_save(path, rap, PKGI_RAP_SIZE))
     {
@@ -322,7 +323,7 @@ int pkgi_download(const DbItem* item)
     pkgi_snprintf(root, sizeof(root), "%s.pkg", item->content);
     LOG("package installation file: %s", root);
 
-    pkgi_snprintf(resume_file, sizeof(resume_file), "%s/%s.resume", pkgi_get_temp_folder(), item->content);
+    pkgi_snprintf(resume_file, sizeof(resume_file), "%s%s/%s.resume", pkgi_get_storage_device(), pkgi_get_temp_folder(), item->content);
     if (pkgi_load(resume_file, &sha, sizeof(sha)) == sizeof(sha))
     {
         LOG("resume file exists, trying to resume");
@@ -370,14 +371,14 @@ finish:
     return result;
 }
 
-void install_update_progress(const char *filename, int64_t progress)
+void update_install_progress(const char *filename, int64_t progress)
 {
     download_offset = progress;
-    pkgi_strncpy(item_name, sizeof(item_name), filename);
+    if (filename) pkgi_strncpy(item_name, sizeof(item_name), filename);
     update_progress(NULL, 0, 0, 0, 0);
 }
 
-int pkgi_install(int remove_pkg)
+int pkgi_install(int iso_mode, int remove_pkg)
 {
     int result;
 
@@ -388,7 +389,7 @@ int pkgi_install(int remove_pkg)
     download_offset = 0;
     total_size = download_size;
 
-    result = install_psp_pkg(item_path);
+    result = iso_mode ? convert_psp_pkg_iso(item_path, (iso_mode == 2)) : install_psp_pkg(item_path);
     if (result && remove_pkg)
     {
         pkgi_rm(item_path);

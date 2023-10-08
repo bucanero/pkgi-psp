@@ -77,7 +77,6 @@ typedef struct
 
 
 static SceLwMutexWorkarea g_dialog_lock;
-static uint32_t cpu_temp_c[2];
 
 static int g_ok_button;
 static int g_cancel_button;
@@ -733,6 +732,7 @@ static int pspPadInit(void)
 void pkgi_start(void)
 {
     int ret = 0;
+    char temp[32];
 
     pkgi_start_debug_log();
 
@@ -784,10 +784,8 @@ void pkgi_start(void)
     SetFontSize(PKGI_FONT_WIDTH, PKGI_FONT_HEIGHT);
     SetFontZ(PKGI_FONT_Z);
 
-    pkgi_mkdirs(PKGI_TMP_FOLDER);
-    pkgi_mkdirs(PKGI_RAP_FOLDER);
-
-//    init_music();
+    pkgi_snprintf(temp, sizeof(temp), "%s%s", pkgi_get_storage_device(), PKGI_RAP_FOLDER);
+    pkgi_mkdirs(temp);
 
     g_time = pkgi_time_msec();
 }
@@ -868,9 +866,28 @@ void pkgi_end(void)
     //sysProcessExit(0);
 }
 
-int pkgi_temperature_is_high(void)
+static int is_psp_go(void)
 {
-    return ((cpu_temp_c[0] >= 70 || cpu_temp_c[1] >= 70));
+    static int res = -1;
+
+    if (res >= 0)
+        return res;
+
+    SceDevInf inf;
+    SceDevctlCmd cmd;
+
+    cmd.dev_inf = &inf;
+    memset(&inf, 0, sizeof(SceDevInf));
+    res = (sceIoDevctl("ef0:", SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0) < 0) ? 0 : 1;
+
+    return res;
+}
+
+const char* pkgi_get_storage_device(void)
+{
+    const char* dev[2] = {"ms0:", "ef0:"};
+
+    return dev[is_psp_go()];
 }
 
 uint64_t pkgi_get_free_space(void)
@@ -884,7 +901,7 @@ uint64_t pkgi_get_free_space(void)
     {
         cmd.dev_inf = &inf;
         memset(&inf, 0, sizeof(SceDevInf));
-        sceIoDevctl("ms0:", SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0);
+        sceIoDevctl(pkgi_get_storage_device(), SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0);
         freeSize = ((uint64_t) inf.freeClusters) * ((uint64_t) inf.sectorCount) * ((uint64_t) inf.sectorSize);
     }
 
@@ -909,7 +926,7 @@ const char* pkgi_get_app_folder(void)
 int pkgi_is_incomplete(const char* titleid)
 {
     char path[256];
-    pkgi_snprintf(path, sizeof(path), "%s/%s.resume", pkgi_get_temp_folder(), titleid);
+    pkgi_snprintf(path, sizeof(path), "%s%s/%s.resume", pkgi_get_storage_device(), pkgi_get_temp_folder(), titleid);
 
     struct stat st;
     int res = stat(path, &st);
@@ -928,10 +945,10 @@ int pkgi_dir_exists(const char* path)
     return 1;
 }
 
-int pkgi_is_installed(const char* content)
+int pkgi_is_installed(const char* titleid)
 {    
     char path[128];
-    snprintf(path, sizeof(path), PKGI_INSTALL_FOLDER "/%.9s", content + 7);
+    snprintf(path, sizeof(path), "%s%s/%s", pkgi_get_storage_device(), PKGI_INSTALL_FOLDER, titleid);
 
     return (pkgi_dir_exists(path));
 }

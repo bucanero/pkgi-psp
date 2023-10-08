@@ -10,7 +10,6 @@
 #include <stddef.h>
 #include <mini18n.h>
 #include <SDL2/SDL.h>
-//#include <json/json.h>
 
 #define content_filter(c)   (c ? 1 << (7 + c) : DbFilterAllContent)
 
@@ -82,24 +81,16 @@ static void pkgi_refresh_thread(void)
     pkgi_thread_exit();
 }
 
-static int install(const char* content)
+static int install(void)
 {
     LOG("installing...");
     pkgi_dialog_start_progress(_("Installing..."), _("Please wait..."), -1);
 
     pkgi_dialog_allow_close(0);
-    int ok = pkgi_install(!config.keep_pkg);
+    int ok = pkgi_install(config.install_mode_iso, !config.keep_pkg);
     pkgi_dialog_allow_close(1);
 
-    if (!ok)
-    {
-        pkgi_dialog_error(_("Installation failed"));
-        return 0;
-    }
-
-    LOG("install succeeded");
-
-    return 1;
+    return ok;
 }
 
 static void pkgi_do_download(void)
@@ -114,14 +105,14 @@ static void pkgi_do_download(void)
     pkgi_lock_process();
     if (pkgi_download(item))
     {
-        if (1)//(!config.install_mode_iso)
+        if (install())
         {
-            install(item->content);
             pkgi_dialog_message(item->name, _("Successfully downloaded"));
+            LOG("install succeeded");
         }
         else
         {
-            pkgi_dialog_message(item->name, _("Task successfully queued (reboot to start)"));
+            pkgi_dialog_error(_("Installation failed"));
         }
         LOG("download completed!");
     }
@@ -226,7 +217,7 @@ static const char* content_type_str(ContentType content)
         case ContentGame: return _("Games");
         case ContentDLC: return _("DLCs");
         case ContentTheme: return _("Themes");
-        case ContentAvatar: return _("Avatars");
+        case ContentPSX: return _("PSX");
         case ContentDemo: return _("Demos");
         case ContentUpdate: return _("Updates");
         case ContentEmulator: return _("Emulators");
@@ -390,13 +381,12 @@ static void pkgi_do_main(pkgi_input* input)
         }
         uint32_t color = PKGI_COLOR_TEXT;
 
-        char titleid[10];
-        pkgi_memcpy(titleid, item->content + 7, 9);
-        titleid[9] = 0;
+        char titleid[0x10];
+        pkgi_snprintf(titleid, sizeof(titleid), "%.9s", item->content + 7);
 
         if (item->presence == PresenceUnknown)
         {
-            item->presence = pkgi_is_incomplete(item->content) ? PresenceIncomplete : pkgi_is_installed(item->content) ? PresenceInstalled : PresenceMissing;
+            item->presence = pkgi_is_incomplete(item->content) ? PresenceIncomplete : pkgi_is_installed(titleid) ? PresenceInstalled : PresenceMissing;
         }
 
         char size_str[64];
@@ -618,19 +608,9 @@ static void reposition(void)
         selected_item = 0;
     }
 }
-/*
-const char * json_parse(json_object * jobj, const char* search)
-{
-    json_object *val;
-    if (json_object_object_get_ex(jobj, search, &val) && (json_object_get_type(val) == json_type_string))
-        return (json_object_get_string(val));
 
-    return NULL;
-}
-*/
 static void pkgi_update_check_thread(void)
 {
-    const char *value;
     char *buffer;
     uint32_t size;
 
@@ -643,40 +623,66 @@ static void pkgi_update_check_thread(void)
         LOG("no update data available");
         pkgi_thread_exit();
     }
-/*
-    json_object * jobj = json_tokener_parse(buffer);
 
-    if ((value = json_parse(jobj, "name")) == NULL || !pkgi_memequ("PKGi PSP", value, 8) || pkgi_stricmp(PKGI_VERSION, value+10) == 0)
+    LOG("received %u bytes", size);
+
+    static const char find[] = "\"name\":\"PKGi PSP v";
+    const char* start = strstr(buffer, find);
+    if (!start)
     {
-        LOG("no new version available");
-        pkgi_thread_exit();
+        LOG("no name found");
+        goto end_update;
     }
 
-    LOG("latest version is %s", value+9);
+    LOG("found name");
+    start += sizeof(find) - 1;
 
-    value = json_parse(json_object_array_get_idx(json_object_object_get(jobj, "assets"), 0), "browser_download_url");
-    if (!value)
+    char* end = strchr(start, '"');
+    if (!end)
+    {
+        LOG("no end of name found");
+        goto end_update;
+    }
+    *end = 0;
+    LOG("latest version is %s", start);
+
+    if (pkgi_stricmp(PKGI_VERSION, start) == 0)
+    {
+        LOG("no need to update");
+        goto end_update;
+    }
+
+    start = strstr(end+1, "\"browser_download_url\":\"");
+    if (!start)
+        goto end_update;
+
+    start += 24;
+    end = strchr(start, '"');
+    if (!end)
     {
         LOG("no download URL found");
-        pkgi_thread_exit();
+        goto end_update;
     }
-*/
-	LOG("download URL is %s", value);
+
+    *end = 0;
+    LOG("download URL is %s", start);
 
     DbItem update_item = {
         .content = "UP0001-NP00PKGI3_00-0000000000000000",
         .name    = "PKGi PSP Update",
-        .url     = value,
+        .url     = start,
     };
 
     pkgi_dialog_start_progress(update_item.name, _("Preparing..."), 0);
     
-    if (pkgi_download(&update_item) && install(update_item.content))
+    if (pkgi_download(&update_item) && install())
     {
         pkgi_dialog_message(update_item.name, _("Successfully downloaded PKGi PSP update"));
         LOG("update downloaded!");
     }
 
+end_update:
+    free(buffer);
     pkgi_thread_exit();
 }
 

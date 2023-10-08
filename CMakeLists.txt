@@ -57,12 +57,13 @@ add_resources(apollo_res ${res_files})
 
 add_executable(${PROJECT_NAME}
   ${apollo_res}
-#  source/ahx.c
+  source/pkg2iso.c
   source/depackager.c
   source/loadpng.c
   source/libfont.c
   source/ttf_fonts.c
   source/pkgi.c
+  source/pkgi_aes.c
   source/pkgi_db.c
   source/pkgi_download.c
   source/pkgi_psp.c

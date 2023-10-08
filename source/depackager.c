@@ -1,3 +1,7 @@
+/*
+* based on depackager by qwikrazor87
+*/
+
 #include <pspkernel.h>
 #include <string.h>
 #include <stdlib.h>
@@ -41,9 +45,8 @@ typedef struct {
 } PKG_EXT_HEADER;
 */
 
-void install_update_progress(const char *filename, int64_t progress);
 
-static u8 public_key[16], static_public_key[16], xor_key[16], gameid[10];
+static u8 public_key[16], static_public_key[16], xor_key[16];
 
 static const u8 PSPAESKey[16] __attribute__((aligned(16))) = {
 	0x07, 0xF2, 0xC6, 0x82, 0x90, 0xB5, 0x0D, 0x2C, 0x33, 0x81, 0x8D, 0x70, 0x9B, 0x60, 0xE6, 0x2B
@@ -160,6 +163,7 @@ static void setiter128(u8 *dst, int size)
 int install_psp_pkg(const char *file)
 {
 	char *tmpBuf;
+	char gameid[10];
 	char pkgBuf[256];
 	SceIoStat stat;
 	SceOff progress = 0;
@@ -247,25 +251,12 @@ int install_psp_pkg(const char *file)
 			iter128(public_key);
 		}
 
-		char path[256], tmp[256];
-		snprintf(path, sizeof(path), PKGI_INSTALL_FOLDER "/%s/%s", gameid, tmpBuf + 15);
-
-		char *Path = path;
-		int pl = 0;
-
-		while (Path[pl]) {
-			if (Path[pl] == '/') {
-				memcpy(tmp, path, pl);
-				tmp[pl] = 0;
-
-				memset(&stat, 0, sizeof(SceIoStat));
-
-				if (sceIoGetstat(tmp, &stat) < 0)
-					sceIoMkdir(tmp, 0777);
-			}
-
-			pl++;
-		}
+		char path[256];
+		snprintf(path, sizeof(path), "%s%s/%s/%s", pkgi_get_storage_device(), PKGI_INSTALL_FOLDER, gameid, tmpBuf + 15);
+		char* slash = strrchr(path, '/');
+		*slash = 0;
+		pkgi_mkdirs(path);
+		*slash = '/';
 
 		if (is_file[i]) {
 			LOG("Currently extracting: %s", path);
@@ -273,7 +264,7 @@ int install_psp_pkg(const char *file)
 
 			progress = sceIoLseek(fd, enc_start + file_offset[i], PSP_SEEK_SET);
 			sceIoRead(fd, tmpBuf, 1024 * 1024);
-			install_update_progress(path + 14, progress);
+			update_install_progress(path + 14, progress);
 
 			setiter128(public_key, file_offset[i] >> 4);
 
@@ -290,7 +281,7 @@ int install_psp_pkg(const char *file)
 
 					sceIoWrite(dstfd, tmpBuf, 1024 * 1024);
 					sceIoRead(fd, tmpBuf, 1024 * 1024);
-					install_update_progress(path + 14, progress + mincheck);
+					update_install_progress(NULL, progress + mincheck);
 
 					LOG("%d/%d bytes", mincheck, file_size[i]);
 				}
@@ -305,42 +296,14 @@ int install_psp_pkg(const char *file)
 			if (mincheck < file_size[i])
 			{
 				sceIoWrite(dstfd, tmpBuf, file_size[i] - mincheck);
-				install_update_progress(path + 14, progress + file_size[i]);
+				update_install_progress(NULL, progress + file_size[i]);
 			}
 
 			sceIoClose(dstfd);
-/*
-			int pathlen = strlen(path);
-
-			if (!strcmp(path + pathlen - 9, "EBOOT.PBP")) {
-				dstfd = sceIoOpen(path, PSP_O_RDONLY, 0777);
-				sceIoLseek(dstfd, 0x24, PSP_SEEK_SET);
-				u32 psar;
-				sceIoRead(dstfd, &psar, 4);
-				sceIoLseek(dstfd, psar, PSP_SEEK_SET);
-				u8 block[16];
-				sceIoRead(dstfd, block, 16);
-
-				if (!memcmp(block, "PSTITLE", 7))
-					sceIoLseek(dstfd, psar + 0x200, PSP_SEEK_SET);
-				else if (!memcmp(block, "PSISO", 5))
-					sceIoLseek(dstfd, psar + 0x400, PSP_SEEK_SET);
-
-				sceIoRead(dstfd, block, 4);
-
-				if (!memcmp(block, "\x00PGD", 4)) {
-//					dumpPS1key(path);
-					keysbin = 1;
-					LOG("PS1 KEYS.BIN dumped");
-				}
-
-				sceIoClose(dstfd);
-			}
-*/
 		}
 	}
 
-	install_update_progress(file + 9, fdsize);
+	update_install_progress(file + 9, fdsize);
 	sceIoClose(fd);
 	free(tmpBuf);
 

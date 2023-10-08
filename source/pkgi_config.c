@@ -186,7 +186,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             }
             else if (pkgi_stricmp(key, "install_mode_iso") == 0)
             {
-                config->install_mode_iso = 1;
+                config->install_mode_iso = (uint8_t)pkgi_strtoll(value);
             }
             else if (pkgi_stricmp(key, "keep_pkg") == 0)
             {
@@ -223,7 +223,7 @@ const char* pkgi_content_tag(ContentType content)
     case ContentGame: return "_games";
     case ContentDLC: return "_dlcs";
     case ContentTheme: return "_themes";
-    case ContentAvatar: return "_avatars";
+    case ContentPSX: return "_psx";
     case ContentDemo: return "_demos";
     case ContentUpdate: return "_updates";
     case ContentEmulator: return "_emulators";
@@ -303,7 +303,7 @@ void pkgi_save_config(const Config* config, const char* update_url, uint32_t upd
 
     if (config->install_mode_iso)
     {
-        len += pkgi_snprintf(data + len, sizeof(data) - len, "install_mode_iso 1\n");
+        len += pkgi_snprintf(data + len, sizeof(data) - len, "install_mode_iso %d\n", config->install_mode_iso);
     }
 
     if (config->keep_pkg)
