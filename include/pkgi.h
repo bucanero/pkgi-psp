@@ -63,7 +63,6 @@ void pkgi_swap(void);
 void pkgi_end(void);
 
 const char* pkgi_get_storage_device(void);
-void update_install_progress(const char *filename, int64_t progress);
 
 uint64_t pkgi_get_free_space(void);
 const char* pkgi_get_config_folder(void);

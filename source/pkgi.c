@@ -542,21 +542,13 @@ static void pkgi_do_head(void)
     pkgi_friendly_size(size, sizeof(size), pkgi_get_free_space());
     pkgi_snprintf(title, sizeof(title), "%s: %s", _("Free"), size);
 
-    int rightw = pkgi_text_width(title);
-    pkgi_draw_text(PKGI_SCREEN_WIDTH - PKGI_MAIN_HLINE_EXTRA - (rightw + PKGI_MAIN_HMARGIN), PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_HEAD, title);
-
     if (search_active)
     {
-        char text[256];
-        int left = pkgi_text_width(search_text) + PKGI_MAIN_TEXT_PADDING;
-        int right = rightw + PKGI_MAIN_TEXT_PADDING;
-
-        pkgi_snprintf(text, sizeof(text), ">> %s <<", search_text);
-
-        pkgi_clip_set(left, PKGI_MAIN_VMARGIN, PKGI_SCREEN_WIDTH - right - left, font_height + PKGI_MAIN_HLINE_EXTRA);
-        pkgi_draw_text((PKGI_SCREEN_WIDTH - pkgi_text_width(text)) / 2, PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_TAIL, text);
-        pkgi_clip_remove();
+        pkgi_snprintf(title, sizeof(title), ">> %s <<", search_text);
     }
+
+    int rightw = pkgi_text_width(title);
+    pkgi_draw_text(PKGI_SCREEN_WIDTH - PKGI_MAIN_HLINE_EXTRA - (rightw + PKGI_MAIN_HMARGIN), PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_HEAD, title);
 }
 
 static void pkgi_do_tail(void)

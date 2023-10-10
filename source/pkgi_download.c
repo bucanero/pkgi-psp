@@ -29,10 +29,6 @@ static void* item_file;     // current file handle
 static char item_name[256]; // current file name
 static char item_path[256]; // current file path
 
-void progress_screen_refresh(void);
-int install_psp_pkg(const char *file);
-int convert_psp_pkg_iso(const char* pkg_arg, int cso);
-
 // pkg header
 static uint64_t total_size;
 

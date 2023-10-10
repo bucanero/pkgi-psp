@@ -5,6 +5,7 @@
 
 #include "pkgi.h"
 #include "pkgi_aes.h"
+#include "pkgi_download.h"
 #include <zlib.h>
 
 #include <stdio.h>
@@ -18,6 +19,7 @@
 
 #define PKG_TYPE_PSP 0x0001
 #define PKG_TYPE_PSX 0x0002
+#define PKG_TYPE_PTF 0x0003
 
 #define Z_WBITS_DEFLATE (-15)
 
@@ -563,28 +565,35 @@ static void unpack_psp_eboot(const char* path, mbedtls_aes_context* pkg_key, con
     pkgi_close(outfile);
 }
 
-/*
-void unpack_psp_key(const char* path, const mbedtls_aes_context* pkg_key, const uint8_t* pkg_iv, FILE* pkg, uint64_t enc_offset, uint64_t item_offset, uint64_t item_size)
+static void unpack_psp_edat(const char* path, mbedtls_aes_context* pkg_key, const uint8_t* pkg_iv, FILE* pkg, uint64_t enc_offset, uint64_t item_offset, uint64_t item_size)
 {
     if (item_size < 0x90 + 0xa0)
     {
-        LOG("ERROR: PSP-KEY.EDAT file is to short!\n");
+        LOG("ERROR: EDAT file is to short!\n");
+        return;
     }
 
+    uint8_t item_header[90];
+    sys_read(pkg, enc_offset + item_offset, item_header, sizeof(item_header));
+    aes128_ctr_xor(pkg_key, pkg_iv, (item_offset) / 16, item_header, sizeof(item_header));
+    uint8_t key_header_offset = item_header[0xC];
+
     uint8_t key_header[0xa0];
-    sys_read(pkg, enc_offset + item_offset + 0x90, key_header, sizeof(key_header));
-    aes128_ctr_xor(pkg_key, pkg_iv, (item_offset + 0x90) / 16, key_header, sizeof(key_header));
+    sys_read(pkg, enc_offset + item_offset + key_header_offset, key_header, sizeof(key_header));
+    aes128_ctr_xor(pkg_key, pkg_iv, (item_offset + key_header_offset) / 16, key_header, sizeof(key_header));
 
     if (memcmp(key_header, "\x00PGD", 4) != 0)
     {
-        LOG("ERROR: wrong PSP-KEY.EDAT header signature!\n");
+        LOG("ERROR: wrong EDAT header signature!\n");
+        return;
     }
 
     uint32_t key_index = get32le(key_header + 4);
     uint32_t drm_type = get32le(key_header + 8);
     if (key_index != 1 || drm_type != 1)
     {
-        LOG("ERROR: unsupported PSP-KEY.EDAT file, key/drm type is wrong!\n");
+        LOG("ERROR: unsupported EDAT file, key/drm type is wrong!\n");
+        return;
     }
 
     uint8_t mac[16];
@@ -598,19 +607,41 @@ void unpack_psp_key(const char* path, const mbedtls_aes_context* pkg_key, const 
     uint32_t data_size = get32le(key_header + 0x44);
     uint32_t data_offset = get32le(key_header + 0x4c);
 
-    if (data_size != 0x10 || data_offset != 0x90)
+    if (data_offset != 0x90)
     {
-        LOG("ERROR: unsupported PSP-KEY.EDAT file, data/offset is wrong!\n");
+        LOG("ERROR: unsupported EDAT file, data offset is wrong!\n");
+        return;
     }
 
     init_psp_decrypt(&psp_key, psp_iv, 0, mac, key_header, 0x70, 0x30);
-    aes128_psp_decrypt(&psp_key, psp_iv, 0, key_header + 0x90, 0x10);
 
-    out_begin_file(path, 0);
-    out_write(key_header + 0x90, 0x10);
-    out_end_file();
+    uint32_t block_size = 0x10;
+    uint32_t block_count = ((data_size + (block_size - 1)) / block_size );
+
+    void* outfile = pkgi_create(path);
+    for (uint32_t i = 0; i < block_count; i++)
+    {
+        uint8_t block[0x10];
+        uint32_t block_offset = (data_offset + (i * block_size)); 
+
+        // update progress bar every 128Kb
+        if (i % 0x2000 == 0)
+            update_install_progress(NULL, enc_offset + item_offset + key_header_offset + block_offset);
+
+        sys_read(pkg, enc_offset + item_offset + key_header_offset + block_offset, block, block_size);
+        aes128_ctr_xor(pkg_key, pkg_iv, (item_offset + key_header_offset + block_offset)  / 16, block, block_size);
+        aes128_psp_decrypt(&psp_key, psp_iv, i * block_size / 16, block, block_size);
+
+        uint32_t out_size = 0x10;
+        if ( ((i + 1) * block_size) > data_size )
+        {
+            out_size = data_size - (i * block_size);
+        }
+        pkgi_write(outfile, block, out_size);
+    }
+
+    pkgi_close(outfile);
 }
-*/
 
 int convert_psp_pkg_iso(const char* pkg_arg, int cso)
 {
@@ -656,8 +687,6 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
     }
 
     uint32_t content_type = 0;
-    uint32_t sfo_offset = 0;
-    uint32_t sfo_size = 0;
     uint32_t items_offset = 0;
     uint32_t items_size = 0;
 
@@ -678,11 +707,18 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
             items_offset = get32be(block + 8);
             items_size = get32be(block + 12);
         }
+/*
+        else if (type == 10)
+        {
+            // DLC
+            sys_read(pkg, meta_offset + 8 + 8, dlc_install_dir, sizeof(dlc_install_dir));
+        }
         else if (type == 14)
         {
             sfo_offset = get32be(block + 8);
             sfo_size = get32be(block + 12);
         }
+*/
 
         meta_offset += 2 * sizeof(uint32_t) + size;
     }
@@ -693,11 +729,19 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
     if (content_type == 6)
     {
         type = PKG_TYPE_PSX;
+        LOG("[*] unpacking PSX");
     }
     else if (content_type == 7 || content_type == 0xe || content_type == 0xf || content_type == 0x10)
     {
         // PSP & PSP-PCEngine / PSP-Go / PSP-Mini / PSP-NeoGeo
         type = PKG_TYPE_PSP;
+        LOG("[*] unpacking PSP");
+    }
+    else if (content_type == 9)
+    {
+        // PSP Theme
+        type = PKG_TYPE_PTF;
+        LOG("[*] unpacking PSP Theme");
     }
     else
     {
@@ -725,45 +769,26 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
     const char* id = (char*)pkg_header + 0x37;
 
     char root[1024];
-    if (type == PKG_TYPE_PSP)
-    {
-        const char* type_str;
-        if (content_type == 7)
-        {
-            type_str = "PSP/PCEngine";
-        }
-        else
-        {
-            type_str = content_type == 0xe ? "PSP-Go" : content_type == 0xf ? "PSP-Mini" : "PSP-NeoGeo";
-        }
-        snprintf(root, sizeof(root), "%s [%.9s] [%s]", title, id, type_str);
-        LOG("[*] unpacking %s\n", type_str);
-    }
-    else if (type == PKG_TYPE_PSX)
-    {
-        snprintf(root, sizeof(root), "%s [%.9s] [PSX]", title, id);
-        LOG("[*] unpacking PSX\n");
-    }
-    else
-    {
-        LOG("ERROR: unsupported type\n");
-        return(0);
-    }
-
-    root[0] = 0;
 
     if (type == PKG_TYPE_PSP)
     {
         snprintf(root, sizeof(root), "%s/ISO", pkgi_get_storage_device());
+        pkgi_mkdirs(root);
 
         if (content_type == 7) // && strcmp(category, "HG") == 0)
         {
             snprintf(root, sizeof(root), "%s/PSP/GAME/%.9s", pkgi_get_storage_device(), id);
         }
     }
+    else if (type == PKG_TYPE_PTF)
+    {
+        snprintf(root, sizeof(root), "%s/PSP/THEME", pkgi_get_storage_device());
+        pkgi_mkdirs(root);
+    }
     else if (type == PKG_TYPE_PSX)
     {
         snprintf(root, sizeof(root), "%s/PSP/GAME/%.9s", pkgi_get_storage_device(), id);
+        pkgi_mkdirs(root);
     }
     else
     {
@@ -827,7 +852,6 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
         {
             if (type == PKG_TYPE_PSX)
             {
-                pkgi_mkdirs(root);
                 if (strcmp("USRDIR/CONTENT/DOCUMENT.DAT", name) == 0)
                 {
                     snprintf(path, sizeof(path), "%s/DOCUMENT.DAT", root);
@@ -841,12 +865,17 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
                     continue;
                 }
             }
+            else if (type == PKG_TYPE_PTF)
+            {
+                snprintf(path, sizeof(path), "%s/PSP/THEME/%s", pkgi_get_storage_device(), name);
+                update_install_progress(path + 15, 0);
+                unpack_psp_edat(path, item_key, iv, pkg, enc_offset, data_offset, data_size);
+                continue;
+            }
             else if (type == PKG_TYPE_PSP)
             {
                 if (strcmp("USRDIR/CONTENT/EBOOT.PBP", name) == 0)
                 {
-                    snprintf(path, sizeof(path), "%s/ISO", pkgi_get_storage_device());
-                    pkgi_mkdirs(path);
                     snprintf(path, sizeof(path), "%s/ISO/%s [%.9s].%s", pkgi_get_storage_device(), title, id, cso ? "cso" : "iso");
                     update_install_progress(path + 4, 0);
                     unpack_psp_eboot(path, item_key, iv, pkg, enc_offset, data_offset, data_size, cso);
@@ -855,13 +884,13 @@ int convert_psp_pkg_iso(const char* pkg_arg, int cso)
 /*
                 else if (strcmp("USRDIR/CONTENT/PSP-KEY.EDAT", name) == 0)
                 {
-                    snprintf(path, sizeof(path), "pspemu/PSP/GAME/%.9s/PSP-KEY.EDAT", id);
+                    snprintf(path, sizeof(path), "%s/PSP/GAME/%.9s/PSP-KEY.EDAT", pkgi_get_storage_device(), id);
                     unpack_psp_key(path, item_key, iv, pkg, enc_offset, data_offset, data_size);
                     continue;
                 }
                 else if (strcmp("USRDIR/CONTENT/CONTENT.DAT", name) == 0)
                 {
-                    snprintf(path, sizeof(path), "pspemu/PSP/GAME/%.9s/CONTENT.DAT", id);
+                    snprintf(path, sizeof(path), "%s/PSP/GAME/%.9s/CONTENT.DAT", pkgi_get_storage_device(), id);
                 }
 */
                 else

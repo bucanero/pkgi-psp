@@ -72,6 +72,7 @@ typedef struct
     size_t size;
 } curl_memory_t;
 
+char * strcasestr(const char *haystack, const char *needle);
 
 static SceLwMutexWorkarea g_dialog_lock;
 
@@ -87,9 +88,6 @@ static uint16_t g_ime_input[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
 
 static pkgi_http g_http[4];
 static t_tex_buttons tex_buttons;
-
-//static MREADER *mem_reader;
-//static MODULE *module;
 
 SDL_Window* window;                         // SDL window
 SDL_Renderer* renderer;                     // SDL software renderer
@@ -125,8 +123,7 @@ char* pkgi_strstr(const char* str, const char* sub)
 
 int pkgi_stricontains(const char* str, const char* sub)
 {
-    return pkgi_strstr(str, sub) != NULL;
-//    return strcasestr(str, sub) != NULL;
+    return strcasestr(str, sub) != NULL;
 }
 
 int pkgi_stricmp(const char* a, const char* b)
@@ -381,7 +378,7 @@ void pkgi_dialog_input_text(const char* title, const char* text)
     memset(&g_ime_title, 0, sizeof(g_ime_title));
 
     convert_to_utf16(title, g_ime_title, PKGI_COUNTOF(g_ime_title) - 1);
-    convert_to_utf16(text, g_ime_input, PKGI_COUNTOF(g_ime_input) - 1);
+    convert_to_utf16(text, g_ime_text, PKGI_COUNTOF(g_ime_text) - 1);
 
     memset(&data, 0, sizeof(SceUtilityOskData));
     data.language = PSP_UTILITY_OSK_LANGUAGE_DEFAULT; // Use system default for text input
@@ -389,10 +386,10 @@ void pkgi_dialog_input_text(const char* title, const char* text)
     data.unk_24 = 1;
     data.inputtype = PSP_UTILITY_OSK_INPUTTYPE_ALL; // Allow all input types
     data.desc = g_ime_title;
-    data.intext = g_ime_input;
+    data.intext = g_ime_text;
     data.outtextlength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
     data.outtextlimit = PKGI_OSK_INPUT_LENGTH; // Limit input to 128 characters
-    data.outtext = g_ime_text;
+    data.outtext = g_ime_input;
 
     memset(&params, 0, sizeof(SceUtilityOskParams));
     ConfigureDialog(&params.base, sizeof(SceUtilityOskParams));
@@ -447,7 +444,7 @@ int pkgi_dialog_input_update(void)
 void pkgi_dialog_input_get_text(char* text, uint32_t size)
 {
     osk_level = 2;
-    convert_from_utf16(g_ime_text, text, size - 1);
+    convert_from_utf16(g_ime_input, text, size - 1);
     LOG("input: %s", text);
 }
 

@@ -9,6 +9,7 @@
 #include <mbedtls/aes.h>
 
 #include "pkgi.h"
+#include "pkgi_download.h"
 
 #define DEPACKAGER_VER 3
 
@@ -46,7 +47,7 @@ typedef struct {
 */
 
 
-static u8 public_key[16], static_public_key[16], xor_key[16];
+static u8 static_public_key[16];
 
 static const u8 PSPAESKey[16] __attribute__((aligned(16))) = {
 	0x07, 0xF2, 0xC6, 0x82, 0x90, 0xB5, 0x0D, 0x2C, 0x33, 0x81, 0x8D, 0x70, 0x9B, 0x60, 0xE6, 0x2B
@@ -165,7 +166,7 @@ int install_psp_pkg(const char *file)
 	char *tmpBuf;
 	char gameid[10];
 	char pkgBuf[256];
-	SceIoStat stat;
+	u8 public_key[16], xor_key[16];
 	SceOff progress = 0;
 
 	LOG("PSP depackager v%d", DEPACKAGER_VER);
@@ -179,17 +180,9 @@ int install_psp_pkg(const char *file)
 		return 0;
 	}
 
-	//1 MiB buffer
-	tmpBuf = (char *)malloc(1024 * 1024);
-	if (!tmpBuf) {
-		LOG("Error allocating memory: 0x%08X", 1024 * 1024);
-		return 0;
-	}
-
 	SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0777);
 	SceSize fdsize = sceIoLseek(fd, 0, PSP_SEEK_END);
 	sceIoLseek(fd, 0, PSP_SEEK_SET);
-
 	sceIoRead(fd, pkgBuf, 256);
 
 	if (toU32(pkgBuf + 0x1C) != fdsize) {
@@ -197,8 +190,22 @@ int install_psp_pkg(const char *file)
 		LOG("Corrupt PKG detected");
 		LOG("detected size: %d bytes", fdsize);
 		LOG("expected size: %d bytes", toU32(pkgBuf + 0x1C));
+		return 0;
+	}
 
-		free(tmpBuf);
+	sceIoLseek(fd, toU32(pkgBuf + 8) + 0x14, PSP_SEEK_SET);
+	sceIoRead(fd, gameid, 4);
+
+	if (toU32(gameid) == 9) {
+		sceIoClose(fd);
+		LOG("Theme PKG detected");
+		return (convert_psp_pkg_iso(file, 0));
+	}
+
+	//1 MiB buffer
+	tmpBuf = (char *)malloc(1024 * 1024);
+	if (!tmpBuf) {
+		LOG("Error allocating memory: 0x%08X", 1024 * 1024);
 		return 0;
 	}
 
