@@ -3,7 +3,9 @@
 
 #include <sys/stat.h>
 #include <SDL2/SDL.h>
-//#include <sysutil/osk.h>
+
+#include <pspgu.h>
+#include <pspdisplay.h>
 #include <pspnet.h>
 #include <pspnet_inet.h>
 #include <pspnet_apctl.h>
@@ -34,11 +36,6 @@ static uint32_t * free_mem;         // Pointer after last texture
 
 #define YA2D_DEFAULT_Z 1
 #define AUDIO_SAMPLES 256
-
-#define OSKDIALOG_FINISHED          0x503
-#define OSKDIALOG_UNLOADED          0x504
-#define OSKDIALOG_INPUT_ENTERED     0x505
-#define OSKDIALOG_INPUT_CANCELED    0x506
 
 #define PKGI_OSK_INPUT_LENGTH 128
 
@@ -83,16 +80,7 @@ static int g_cancel_button;
 static uint32_t g_button_frame_count;
 static uint64_t g_time;
 
-static int g_ime_active;
-static int osk_action = 0;
 static int osk_level = 0;
-
-//static sys_mem_container_t container_mem;
-//static oskCallbackReturnParam OutputReturnedParam;
-
-volatile int osk_event = 0;
-volatile int osk_unloaded = 0;
-
 static uint16_t g_ime_title[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t g_ime_text[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
 static uint16_t g_ime_input[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
@@ -284,26 +272,28 @@ static int convert_to_utf16(const char* utf8, uint16_t* utf16, uint32_t availabl
             uint8_t next = (uint8_t)*utf8++;
             if (next == 0 || (next & 0xc0) != 0x80)
             {
-                return count;
+                goto utf16_end;
             }
             code = (code << 6) | (next & 0x3f);
         }
 
         if (code < 0xd800 || code >= 0xe000)
         {
-            if (available < 1) return count;
+            if (available < 1) goto utf16_end;
             utf16[count++] = (uint16_t)code;
             available--;
         }
         else // surrogate pair
         {
-            if (available < 2) return count;
+            if (available < 2) goto utf16_end;
             code -= 0x10000;
             utf16[count++] = 0xd800 | (code >> 10);
             utf16[count++] = 0xdc00 | (code & 0x3ff);
             available -= 2;
         }
     }
+
+utf16_end:
     utf16[count]=0;
     return count;
 }
@@ -324,27 +314,27 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
             uint16_t ch2 = *utf16++;
             if (ch < 0xdc00 || ch > 0xe000 || ch2 < 0xd800 || ch2 > 0xdc00)
             {
-                return count;
+                goto utf8_end;
             }
             code = 0x10000 + ((ch & 0x03FF) << 10) + (ch2 & 0x03FF);
         }
 
         if (code < 0x80)
         {
-            if (size < 1) return count;
+            if (size < 1) goto utf8_end;
             utf8[count++] = (char)code;
             size--;
         }
         else if (code < 0x800)
         {
-            if (size < 2) return count;
+            if (size < 2) goto utf8_end;
             utf8[count++] = (char)(0xc0 | (code >> 6));
             utf8[count++] = (char)(0x80 | (code & 0x3f));
             size -= 2;
         }
         else if (code < 0x10000)
         {
-            if (size < 3) return count;
+            if (size < 3) goto utf8_end;
             utf8[count++] = (char)(0xe0 | (code >> 12));
             utf8[count++] = (char)(0x80 | ((code >> 6) & 0x3f));
             utf8[count++] = (char)(0x80 | (code & 0x3f));
@@ -352,7 +342,7 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
         }
         else
         {
-            if (size < 4) return count;
+            if (size < 4) goto utf8_end;
             utf8[count++] = (char)(0xf0 | (code >> 18));
             utf8[count++] = (char)(0x80 | ((code >> 12) & 0x3f));
             utf8[count++] = (char)(0x80 | ((code >> 6) & 0x3f));
@@ -360,190 +350,104 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
             size -= 4;
         }
     }
+
+utf8_end:
     utf8[count]=0;
     return count;
 }
 
-
-static void osk_exit(void)
+static void ConfigureDialog(pspUtilityDialogCommon *dialog, size_t dialog_size)
 {
-/*    if(osk_level == 2) {
-        oskAbort();
-        oskUnloadAsync(&OutputReturnedParam);
-        
-        osk_event = 0;
-        osk_action=-1;
-    }
+    memset(dialog, 0, sizeof(pspUtilityDialogCommon));
 
-    if(osk_level >= 1) {
-        sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
-        sysMemContainerDestroy(container_mem);
-    }
-*/
+    dialog->size = dialog_size;
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &dialog->language); // Prompt language
+    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &dialog->buttonSwap); // X/O button swap
+    dialog->graphicsThread = 0x11;
+    dialog->accessThread = 0x13;
+    dialog->fontThread = 0x12;
+    dialog->soundThread = 0x10;
 }
-
-static void osk_event_handle(uint64_t status, uint64_t param, void * userdata)
-{
-    /*
-    switch((uint32_t) status) 
-    {
-	    case OSKDIALOG_INPUT_CANCELED:
-		    osk_event = OSKDIALOG_INPUT_CANCELED;
-		    break;
-
-        case OSKDIALOG_UNLOADED:
-		    osk_unloaded = 1;
-		    break;
-
-        case OSKDIALOG_INPUT_ENTERED:
-	    	osk_event = OSKDIALOG_INPUT_ENTERED;
-		    break;
-
-	    case OSKDIALOG_FINISHED:
-	    	osk_event = OSKDIALOG_FINISHED;
-		    break;
-
-        default:
-            break;
-    }*/
-}
-
 
 void pkgi_dialog_input_text(const char* title, const char* text)
 {
-    /*
-    oskParam DialogOskParam;
-    oskInputFieldInfo inputFieldInfo;
-	int ret = 0;       
-    osk_level = 0;
-    
-	if(sysMemContainerCreate(&container_mem, 8*1024*1024) < 0) {
-	    ret = -1;
-	    goto error_end;
-    }
+    int done;
+    SceUtilityOskData data;
+    SceUtilityOskParams params;
 
-    osk_level = 1;
+    osk_level = 0;
+    memset(&g_ime_input, 0, sizeof(g_ime_input));
+    memset(&g_ime_text, 0, sizeof(g_ime_text));
+    memset(&g_ime_title, 0, sizeof(g_ime_title));
 
     convert_to_utf16(title, g_ime_title, PKGI_COUNTOF(g_ime_title) - 1);
-    convert_to_utf16(text, g_ime_text, PKGI_COUNTOF(g_ime_text) - 1);
-    
-    inputFieldInfo.message =  g_ime_title;
-    inputFieldInfo.startText = g_ime_text;
-    inputFieldInfo.maxLength = PKGI_OSK_INPUT_LENGTH;
-       
-    OutputReturnedParam.res = OSK_NO_TEXT;
-    OutputReturnedParam.len = PKGI_OSK_INPUT_LENGTH;
-    OutputReturnedParam.str = g_ime_input;
+    convert_to_utf16(text, g_ime_input, PKGI_COUNTOF(g_ime_input) - 1);
 
-    memset(g_ime_input, 0, sizeof(g_ime_input));
+    memset(&data, 0, sizeof(SceUtilityOskData));
+    data.language = PSP_UTILITY_OSK_LANGUAGE_DEFAULT; // Use system default for text input
+    data.lines = 1;
+    data.unk_24 = 1;
+    data.inputtype = PSP_UTILITY_OSK_INPUTTYPE_ALL; // Allow all input types
+    data.desc = g_ime_title;
+    data.intext = g_ime_input;
+    data.outtextlength = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+    data.outtextlimit = PKGI_OSK_INPUT_LENGTH; // Limit input to 128 characters
+    data.outtext = g_ime_text;
 
-    if(oskSetKeyLayoutOption (OSK_10KEY_PANEL | OSK_FULLKEY_PANEL) < 0) {
-        ret = -2; 
-        goto error_end;
-    }
+    memset(&params, 0, sizeof(SceUtilityOskParams));
+    ConfigureDialog(&params.base, sizeof(SceUtilityOskParams));
+    params.datacount = 1;
+    params.data = &data;
 
-    DialogOskParam.firstViewPanel = OSK_PANEL_TYPE_ALPHABET_FULL_WIDTH;
-    DialogOskParam.allowedPanels = (OSK_PANEL_TYPE_ALPHABET | OSK_PANEL_TYPE_NUMERAL | OSK_PANEL_TYPE_ENGLISH);
-
-    if(oskAddSupportLanguage (DialogOskParam.allowedPanels) < 0) {
-        ret = -3; 
-        goto error_end;
-    }
-
-    if(oskSetLayoutMode( OSK_LAYOUTMODE_HORIZONTAL_ALIGN_CENTER | OSK_LAYOUTMODE_VERTICAL_ALIGN_CENTER ) < 0) {
-        ret = -4; 
-        goto error_end;
-    }
-
-    oskPoint pos = {0.0, 0.0};
-
-    DialogOskParam.controlPoint = pos;
-    DialogOskParam.prohibitFlags = OSK_PROHIBIT_RETURN;
-    if(oskSetInitialInputDevice(OSK_DEVICE_PAD) < 0) {
-        ret = -5; 
-        goto error_end;
-    }
-    
-    sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
-    sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, osk_event_handle, NULL);
-    
-    osk_action = 0;
-    osk_unloaded = 0;
-    
-    if(oskLoadAsync(container_mem, (const void *) &DialogOskParam, (const void *) &inputFieldInfo) < 0) {
-        ret= -6; 
-        goto error_end;
-    }
-
-    osk_level = 2;
-
-    if (ret == 0)
-    {
-        g_ime_active = 1;
+    if (sceUtilityOskInitStart(&params) < 0)
         return;
-    }
 
-error_end:
-    LOG("Keyboard Init failed, error 0x%08x", ret);
+    void* list = aligned_alloc(16, 0x100000);
+    if (!list)
+        return;
 
-    osk_exit();
-    osk_level = 0;*/
+    do {
+        sceGuStart(GU_DIRECT, list);
+        sceGuClearColor(0xFF68260D);
+        sceGuClearDepth(0);
+        sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+        sceGuFinish();
+        sceGuSync(0, 0);
+
+        done = sceUtilityOskGetStatus();
+        switch(done)
+        {
+            case PSP_UTILITY_DIALOG_VISIBLE:
+                sceUtilityOskUpdate(1);
+                break;
+            
+            case PSP_UTILITY_DIALOG_QUIT:
+                sceUtilityOskShutdownStart();
+                break;
+        }
+
+        sceDisplayWaitVblankStart();
+        sceGuSwapBuffers();
+    } while (done != PSP_UTILITY_DIALOG_FINISHED);
+
+    free(list);
+
+    if (data.result == PSP_UTILITY_OSK_RESULT_CANCELLED)
+        return;
+
+    osk_level = 1;
+    return;
 }
 
 int pkgi_dialog_input_update(void)
 {
-    /*
-    if (!g_ime_active)
-    {
-        return 0;
-    }
-    
-    if (!osk_unloaded)
-    {
-        switch(osk_event) 
-        {
-            case OSKDIALOG_INPUT_ENTERED:
-                oskGetInputText(&OutputReturnedParam);
-                osk_event = 0;
-                break;
-
-            case OSKDIALOG_INPUT_CANCELED:
-                oskAbort();
-                oskUnloadAsync(&OutputReturnedParam);
-
-                osk_event = 0;
-                osk_action = -1;
-                break;
-
-            case OSKDIALOG_FINISHED:
-                if (osk_action != -1) osk_action = 1;
-                oskUnloadAsync(&OutputReturnedParam);
-                osk_event = 0;
-                break;
-
-            default:    
-                break;
-        }
-    }
-    else
-    {
-        g_ime_active = 0;
-
-        if ((OutputReturnedParam.res == OSK_OK) && (osk_action == 1))
-        {
-            osk_exit();
-            return 1;
-        } 
-         
-        osk_exit();
-    }
-*/
-    return 0;
+    return (osk_level == 1);
 }
 
 void pkgi_dialog_input_get_text(char* text, uint32_t size)
 {
-    convert_from_utf16(g_ime_input, text, size - 1);
+    osk_level = 2;
+    convert_from_utf16(g_ime_text, text, size - 1);
     LOG("input: %s", text);
 }
 
@@ -576,24 +480,29 @@ static int Net_DisplayNetDialog(void)
     memset(&adhocparam, 0, sizeof(adhocparam));
     memset(&data, 0, sizeof(pspUtilityNetconfData));
 
-    data.base.size = sizeof(pspUtilityNetconfData);
-    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, &data.base.language);
-    sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &data.base.buttonSwap); // X/O button swap
-    data.base.graphicsThread = 17;
-    data.base.accessThread = 19;
-    data.base.fontThread = 18;
-    data.base.soundThread = 16;
+    ConfigureDialog(&data.base, sizeof(pspUtilityNetconfData));
     data.action = PSP_NETCONF_ACTION_CONNECTAP;
     data.hotspot = 0;
     data.adhocparam = &adhocparam;
 
     if ((ret = sceUtilityNetconfInitStart(&data)) < 0) {
         LOG("sceUtilityNetconfInitStart() failed: 0x%08x", ret);
-        return ret;
+        return 0;
     }
+
+    void* list = aligned_alloc(16, 0x100000);
+    if (!list)
+        return 0;
 
     while(!done)
     {
+        sceGuStart(GU_DIRECT, list);
+        sceGuClearColor(0xFF68260D);
+        sceGuClearDepth(0);
+        sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+        sceGuFinish();
+        sceGuSync(0, 0);
+
         switch(sceUtilityNetconfGetStatus()) {
             case PSP_UTILITY_DIALOG_NONE:
                 done = 1;
@@ -621,10 +530,10 @@ static int Net_DisplayNetDialog(void)
                 break;
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
+        sceDisplayWaitVblankStart();
+        sceGuSwapBuffers();
     }
+    free(list);
 
     done = PSP_NET_APCTL_STATE_DISCONNECTED;
     if ((ret = sceNetApctlGetState(&done)) < 0) {
@@ -1232,6 +1141,8 @@ int pkgi_validate_url(const char* url)
 
 static void pkgi_curl_init(CURL *curl)
 {
+    union SceNetApctlInfo proxy_info;
+
     // Set user agent string
     curl_easy_setopt(curl, CURLOPT_USERAGENT, PKGI_USER_AGENT);
     // don't verify the certificate's name against host
@@ -1250,6 +1161,22 @@ static void pkgi_curl_init(CURL *curl)
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     // request using SSL for the FTP transfer if available
     curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+
+    // check for proxy settings
+    memset(&proxy_info, 0, sizeof(proxy_info));
+    sceNetApctlGetInfo(PSP_NET_APCTL_INFO_USE_PROXY, &proxy_info);
+    
+    if (proxy_info.useProxy)
+    {
+        memset(&proxy_info, 0, sizeof(proxy_info));
+        sceNetApctlGetInfo(PSP_NET_APCTL_INFO_PROXY_URL, &proxy_info);
+        curl_easy_setopt(curl, CURLOPT_PROXY, proxy_info.proxyUrl);
+        curl_easy_setopt(curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+
+        memset(&proxy_info, 0, sizeof(proxy_info));
+        sceNetApctlGetInfo(PSP_NET_APCTL_INFO_PROXY_PORT, &proxy_info);
+        curl_easy_setopt(curl, CURLOPT_PROXYPORT, proxy_info.proxyPort);
+    }
 }
 
 pkgi_http* pkgi_http_get(const char* url, const char* content, uint64_t offset)

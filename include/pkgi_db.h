@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 
-#define MAX_CONTENT_TYPES 10
 
 typedef enum {
     PresenceUnknown,
@@ -59,7 +58,8 @@ typedef enum {
     ContentUpdate,
     ContentEmulator,
     ContentApp,
-    ContentTool
+    ContentTool,
+    MAX_CONTENT_TYPES
 } ContentType;
 
 typedef struct {

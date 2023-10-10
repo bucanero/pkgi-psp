@@ -20,24 +20,14 @@ void aes128_init_dec(mbedtls_aes_context* ctx, const uint8_t* key)
 */
 }
 
-static void aes128_encrypt(mbedtls_aes_context* ctx, const uint8_t* input, uint8_t* output)
+void aes128_ecb_encrypt(mbedtls_aes_context* ctx, const uint8_t* input, uint8_t* output)
 {
     mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, input, output);
 }
 
-static void aes128_decrypt(mbedtls_aes_context* ctx, const uint8_t* input, uint8_t* output)
-{
-    mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_DECRYPT, input, output);
-}
-
-void aes128_ecb_encrypt(mbedtls_aes_context* ctx, const uint8_t* input, uint8_t* output)
-{
-    aes128_encrypt(ctx, input, output);
-}
-
 void aes128_ecb_decrypt(mbedtls_aes_context* ctx, const uint8_t* input, uint8_t* output)
 {
-    aes128_decrypt(ctx, input, output);
+    mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_DECRYPT, input, output);
 }
 
 static void ctr_add(uint8_t* counter, uint64_t n)
@@ -62,7 +52,7 @@ void aes128_ctr_xor(mbedtls_aes_context* context, const uint8_t* iv, uint64_t bl
 
     while (size >= 16)
     {
-        aes128_encrypt(context, counter, tmp);
+        aes128_ecb_encrypt(context, counter, tmp);
         for (uint32_t i=0; i<16; i++)
         {
             *buffer++ ^= tmp[i];
@@ -73,7 +63,7 @@ void aes128_ctr_xor(mbedtls_aes_context* context, const uint8_t* iv, uint64_t bl
 
     if (size != 0)
     {
-        aes128_encrypt(context, counter, tmp);
+        aes128_ecb_encrypt(context, counter, tmp);
         for (size_t i=0; i<size; i++)
         {
             *buffer++ ^= tmp[i];

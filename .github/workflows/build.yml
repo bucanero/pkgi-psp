@@ -10,12 +10,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Checkout mini18n
-      uses: actions/checkout@v3
-      with:
-        repository: bucanero/mini18n
-        path: mini18n
-
     - name: Checkout dbglogger
       uses: actions/checkout@v3
       with:
@@ -39,14 +33,6 @@ jobs:
       working-directory: dbglogger
       run: |
         make -f Makefile.psp install
-
-    - name: Install mini18n
-      working-directory: mini18n
-      run: |
-        psp-cmake .
-        make mini18n-static
-        cp src/libmini18n.a ${PSPDEV}/psp/lib/
-        cp src/mini18n.h ${PSPDEV}/psp/include/
 
     - name: Build PKGi App Package
       run: |
