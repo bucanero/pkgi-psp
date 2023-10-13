@@ -104,7 +104,7 @@ add_custom_target(createzip
 
 add_custom_target(copy
   COMMAND @echo "Copying to $$PSPMS/PSP/GAME/PKGI/EBOOT.PBP ..."
-  COMMAND @mkdir -p $$PSPMS/PSP/GAME/APOLLO
+  COMMAND @mkdir -p $$PSPMS/PSP/GAME/PKGI
   COMMAND @cp -v EBOOT.PBP $$PSPMS/PSP/GAME/PKGI/EBOOT.PBP
   DEPENDS ${PROJECT_NAME}
 )

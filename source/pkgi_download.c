@@ -106,9 +106,9 @@ static int update_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ulto
         }
 
         pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
-        info_update = info_now + 500;
+        info_update = info_now + 1000;
+        progress_screen_refresh();
     }
-    progress_screen_refresh();
 
     return (pkgi_dialog_is_cancelled());
 }

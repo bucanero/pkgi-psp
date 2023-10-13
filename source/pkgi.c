@@ -601,7 +601,7 @@ static void reposition(void)
     }
 }
 
-static void pkgi_update_check_thread(void)
+static void pkgi_update_check(void)
 {
     char *buffer;
     uint32_t size;
@@ -659,6 +659,8 @@ static void pkgi_update_check_thread(void)
     *end = 0;
     LOG("download URL is %s", start);
 
+    pkgi_dialog_message("New PKGi Version Available!", "Update PKGi PSP to the latest version:\nhttps://github.com/bucanero/pkgi-psp/");
+/*
     DbItem update_item = {
         .content = "UP0001-NP00PKGI3_00-0000000000000000",
         .name    = "PKGi PSP Update",
@@ -672,10 +674,10 @@ static void pkgi_update_check_thread(void)
         pkgi_dialog_message(update_item.name, _("Successfully downloaded PKGi PSP update"));
         LOG("update downloaded!");
     }
+*/
 
 end_update:
     free(buffer);
-    pkgi_thread_exit();
 }
 
 static void pkgi_load_language(const char* lang)
@@ -718,11 +720,6 @@ int main(int argc, char* argv[])
 
     background = pkgi_load_image_buffer(background, png);
 
-    if (config.version_check)
-    {
-//        pkgi_start_thread("update_thread", &pkgi_update_check_thread);
-    }
-
     memset(&input, 0, sizeof(pkgi_input));
     while (pkgi_update(&input) && (state != StateTerminate))
     {
@@ -730,7 +727,10 @@ int main(int argc, char* argv[])
 
         if (state == StateUpdateDone)
         {
-            psp_network_up();
+            if (psp_network_up() && config.version_check)
+            {
+                pkgi_update_check();
+            }
 
             pkgi_db_configure(NULL, &config);
             state = StateMain;

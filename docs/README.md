@@ -22,8 +22,8 @@ This homebrew app allows to download and install `.pkg` files directly on your P
 
 ### Notes:
 * **content activation:** downloaded content requires a valid license to run. If your PSP hasn't been activated, you can use one of the following plugins:
+  - [npdrm_free plugin](https://github.com/qwikrazor87/npdrm_free) (PSP/PS1/PCEngine games and DLCs)
   - [npdrm_free_mod plugin](https://github.com/lusid1/npdrm_free_mod) (PSP/PS1 games only)
-  - [npdrm_free plugin](https://github.com/qwikrazor87/npdrm_free) (PSP/PS1 games and DLCs)
   - [nploader_mod](https://github.com/lusid1/nploader_mod) (PSP DLCs only)
 
 # Download
@@ -46,7 +46,7 @@ You can also load additional database files:
 - `pkgi_games.txt`
 - `pkgi_dlcs.txt`
 - `pkgi_themes.txt`
-- `pkgi_avatars.txt`
+- `pkgi_psx.txt`
 - `pkgi_demos.txt`
 - `pkgi_updates.txt`
 - `pkgi_emulators.txt`
@@ -62,12 +62,15 @@ You can refresh and sync an online database by adding the DB URL(s) to the `conf
 For example:
 
 ```
-url http://www.mysite.com/mylist.csv
+url_games http://www.mysite.com/mylist.csv
 url_demos http://www.demos.com/otherlist.csv
 url_emulators http://www.example.com/emulators.csv
 ```
 
-Using this setup, `pkgi.txt` will be updated with `mylist.csv`, `pgi_demos.txt` with `otherlist.csv` , and `pkgi_emulators.txt` with `emulators.csv`.
+Using this setup,
+- `pkgi_games.txt` will be updated with `http://www.mysite.com/mylist.csv`,
+- `pkgi_demos.txt` with `http://www.demos.com/otherlist.csv`,
+- and `pkgi_emulators.txt` with `http://www.example.com/emulators.csv`.
 
 Next time you open the app, you'll have an additional menu option ![Triangle](https://github.com/bucanero/pkgi-ps3/raw/master/data/TRIANGLE.png) called **Refresh**. When you select it, the local databases will be syncronized with the defined URLs.
 
@@ -91,7 +94,7 @@ where:
 | `type` | is a number for the item's content type. See the [table below](#content-types) for details. (set it to 0 if unknown)
 | `name` | is a string for the item's name.
 | `description` | is a string for the item's description.
-| `rap` | the 16 hex bytes for a RAP file, if needed by the item (`.rap` files will be created on `/dev_hdd0/exdata`). Leave empty to skip the `.rap` file.
+| `rap` | the 16 hex bytes for a RAP file, if needed by the item (`.rap` files will be created on `ms0:/PKG/RAP`). Leave empty to skip the `.rap` file.
 | `url` | is the HTTP/HTTPS/FTP/FTPS URL where to download the `.pkg` file.
 | `size` | is the size in bytes of the `.pkg` file, or 0 if unknown.
 | `checksum` | is a SHA256 digest of the `.pkg` file (as 32 hex bytes) to make sure the file is not tampered with. Leave empty to skip the check.
@@ -117,7 +120,7 @@ EP0001-UPDWEBMOD_00-0000000000000000,9,webMAN MOD v1.47.36,Backup Manager,,http:
 | 1	| Game               | `pkgi_games.txt`
 | 2	| DLC                | `pkgi_dlcs.txt`
 | 3	| Theme              | `pkgi_themes.txt`
-| 4	| Avatar             | `pkgi_avatars.txt`
+| 4	| PSX                | `pkgi_psx.txt`
 | 5	| Demo               | `pkgi_demos.txt`
 | 6	| Update             | `pkgi_updates.txt`
 | 7	| Emulator           | `pkgi_emulators.txt`
@@ -198,7 +201,7 @@ It will open the context menu. Press ![Triangle](https://github.com/bucanero/pkg
 
 ## Acknowledgements
 
-* [mmozeiko](https://github.com/mmozeiko/): [PS Vita pkgi](https://github.com/mmozeiko/pkgi)
+* [mmozeiko](https://github.com/mmozeiko/): [pkgi](https://github.com/mmozeiko/pkgi) (PS Vita), [pkg2zip](https://github.com/mmozeiko/pkg2zip)
 * [qwikrazor87](https://github.com/qwikrazor87/): [Depackager](https://github.com/bucanero/psptools/tree/master/depackager)
 
 # Building
@@ -215,10 +218,9 @@ Run `cmake . && make` to create a release build. If you want to create a `.zip` 
 
 ## Debugging
 
-To enable debug logging, pass `-DPKGI_ENABLE_DEBUG=ON` argument to cmake. The application will send debug messages to
-UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your computer:
+To enable debug logging, pass `-DPKGI_ENABLE_DEBUG=ON` argument to `cmake`. The application will write debug messages to
 
-    $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+    ms0:/pkgi-psp.log
 
 You can also set the `PSPIP` environment variable to your PSP's IP address, and use `make send` to upload `EBOOT.PBP` directly to the `ms0:/PSP/GAME/PKGI` folder.
 
