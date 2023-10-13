@@ -324,7 +324,7 @@ int pkgi_do_menu(pkgi_input* input)
         int x = PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN) + PKGI_MENU_LEFT_PADDING + (i > 9 ? pkgi_menu_width/2 : 0);
         if (i == 10)
         {
-            y -= font_height*10;
+            y = PKGI_MENU_TOP_PADDING + font_height*2;
         }
 
         char text[64];
@@ -373,11 +373,14 @@ int pkgi_do_menu(pkgi_input* input)
         
         if (menu_selected == i)
         {
-            pkgi_draw_fill_rect_z(PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN/2) + (i > 8 ? pkgi_menu_width/2 : 0), y, PKGI_MENU_Z, pkgi_menu_width/2 - PKGI_MAIN_HMARGIN, font_height, PKGI_COLOR(20, 20, 20));
+            pkgi_draw_fill_rect_z(PKGI_SCREEN_WIDTH - (pkgi_menu_width + PKGI_MAIN_HMARGIN/2) + (i > 9 ? pkgi_menu_width/2 : 0), y, PKGI_MENU_Z, pkgi_menu_width/2 - PKGI_MAIN_HMARGIN, font_height, PKGI_COLOR(20, 20, 20));
         }
         pkgi_draw_text_z(x, y, PKGI_MENU_TEXT_Z, PKGI_COLOR_TEXT_MENU, text);
 
-        y += font_height;
+        if (type != MenuSearchClear || !menu_search_clear)
+        {
+            y += font_height;
+        }
     }
 
     return 1;

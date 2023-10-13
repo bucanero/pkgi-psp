@@ -5,7 +5,7 @@
 #include "pkgi_dialog.h"
 
 #define PKGI_UPDATE_URL     "https://api.github.com/repos/bucanero/pkgi-psp/releases/latest"
-#define PKGI_VERSION        "0.8.0"
+#define PKGI_VERSION        "1.0.0"
 
 #define PKGI_BUTTON_SELECT 0x000001
 #define PKGI_BUTTON_START  0x000008

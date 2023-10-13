@@ -742,7 +742,7 @@ int main(int argc, char* argv[])
         case StateError:
             pkgi_do_error();
             // leave the menu open if there's no database and we have URLs available
-            if (!pkgi_menu_is_open() && config.allow_refresh)
+            if (!pkgi_menu_is_open() && config.allow_refresh && psp_network_up())
             {
                 config_temp = config;
                 pkgi_menu_start(search_active, &config);

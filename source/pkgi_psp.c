@@ -1149,7 +1149,7 @@ static void pkgi_curl_init(CURL *curl)
     // Set SSL VERSION to TLS 1.2
     curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
     // Set timeout for the connection to build
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
     // Follow redirects
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     // maximum number of redirects allowed
