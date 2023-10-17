@@ -170,11 +170,14 @@ static const char* friendly_size_str(uint64_t size)
 int pkgi_check_free_space(uint64_t size)
 {
     uint64_t free = pkgi_get_free_space();
-    if (size > free + 1024 * 1024)
+
+    size *= 2; // we need at least twice the space to install a package
+    if (size > free)
     {
         char error[256];
-        pkgi_snprintf(error, sizeof(error), _("pkg requires %u %s free space, but only %u %s available"),
+        pkgi_snprintf(error, sizeof(error), _(".pkg requires %u %s free space\n(%s/PKG) only %u %s available"),
             friendly_size(size), friendly_size_str(size),
+            pkgi_get_storage_device(),
             friendly_size(free), friendly_size_str(free)
         );
 
@@ -466,7 +469,6 @@ static void pkgi_do_main(pkgi_input* input)
         if (!pkgi_check_free_space(item->size))
         {
             LOG("[%.9s] %s - no free space", item->content + 7, item->name);
-            pkgi_dialog_error(_("Not enough free space on HDD"));
         }
         else if (item->presence == PresenceInstalled)
         {
@@ -554,11 +556,13 @@ static void pkgi_do_head(void)
 static void pkgi_do_tail(void)
 {
     char text[256];
+    int batt, status;
 
     pkgi_draw_fill_rect_z(0, bottom_y - font_height/2, PKGI_FONT_Z, PKGI_SCREEN_WIDTH, PKGI_MAIN_HLINE_HEIGHT, PKGI_COLOR_HLINE);
 
-    int left = pkgi_text_width(text) + PKGI_MAIN_TEXT_PADDING;
-    int right = PKGI_MAIN_TEXT_PADDING;
+    batt = pkgi_get_battery_charge(&status);
+    pkgi_snprintf(text, sizeof(text), "%c %d%%", status + 0xE9, batt);
+    pkgi_draw_text_z(PKGI_MAIN_TEXT_PADDING, bottom_y, PKGI_FONT_Z, PKGI_COLOR_TEXT_TAIL, text);
 
     if (pkgi_menu_is_open())
     {
@@ -569,9 +573,7 @@ static void pkgi_do_tail(void)
         pkgi_snprintf(text, sizeof(text), "%s %s  " PKGI_UTF8_T " %s  " PKGI_UTF8_S " %s  %s %s", pkgi_get_ok_str(), _("Download"), _("Menu"), _("Details"), pkgi_get_cancel_str(), _("Exit"));
     }
 
-    pkgi_clip_set(left, bottom_y, PKGI_SCREEN_WIDTH - right - left, PKGI_SCREEN_HEIGHT - bottom_y);
     pkgi_draw_text_z((PKGI_SCREEN_WIDTH - pkgi_text_width(text)) / 2, bottom_y, PKGI_FONT_Z, PKGI_COLOR_TEXT_TAIL, text);
-    pkgi_clip_remove();
 }
 
 static void pkgi_do_error(void)

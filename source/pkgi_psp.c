@@ -448,7 +448,7 @@ void pkgi_dialog_input_get_text(char* text, uint32_t size)
     LOG("input: %s", text);
 }
 
-void load_ttf_fonts(void)
+static void load_ttf_fonts(void)
 {
     LOG("loading TTF fonts");
     texture_mem = malloc(256 * 8 * 4);
@@ -768,9 +768,54 @@ void pkgi_end(void)
     // Stop all SDL sub-systems
     SDL_Quit();
     http_end();
-
-    //sysProcessExit(0);
 }
+
+int pkgi_get_battery_charge(int* status)
+{
+    static uint32_t t = 0;
+    static int charge = 0;
+
+    if (t < g_time)
+    {
+        charge = (scePowerIsBatteryExist() == 1) ? scePowerGetBatteryLifePercent() : 0;
+
+        if (charge < 0)
+            charge = 0;
+
+        if (scePowerIsBatteryCharging() == 1)
+            charge *= (-1);
+
+        t = g_time + 1000;
+    }
+
+    if (charge <= 0)
+    {
+        *status = 0;
+        return (-charge);
+    }
+    else if (charge > 70)
+        *status = 4;
+    else if (charge > 40)
+        *status = 3;
+    else if (charge > 10)
+        *status = 2;
+    else
+        *status = 1;
+
+    return charge;
+}
+
+/*
+static int pspGoIsMemCardInserted(void) {
+    int status = 0, ret = 0;
+
+    ret = sceIoDevctl("mscmhc0:", 0x02025806, 0, 0, &status, sizeof(status));
+    if (ret < 0)
+        return ret;
+
+    return (status == 1);
+}
+*/
 
 static int is_psp_go(void)
 {
@@ -803,12 +848,13 @@ uint64_t pkgi_get_free_space(void)
     static uint32_t t = 0;
     static uint64_t freeSize = 0;
 
-    if (t++ % 0x1000 == 0)
+    if (t < g_time)
     {
         cmd.dev_inf = &inf;
         memset(&inf, 0, sizeof(SceDevInf));
         sceIoDevctl(pkgi_get_storage_device(), SCE_PR_GETDEV, &cmd, sizeof(SceDevctlCmd), NULL, 0);
         freeSize = ((uint64_t) inf.freeClusters) * ((uint64_t) inf.sectorCount) * ((uint64_t) inf.sectorSize);
+        t = g_time + 1000;
     }
 
     return (freeSize);
@@ -1088,7 +1134,6 @@ void pkgi_draw_text_z(int x, int y, int z, uint32_t color, const char* text)
     }    
 }
 
-
 void pkgi_draw_text_ttf(int x, int y, int z, uint32_t color, const char* text)
 {
     Z_ttf = z;
@@ -1101,7 +1146,6 @@ int pkgi_text_width_ttf(const char* text)
     return (display_ttf_string(0, 0, text, 0, 0, PKGI_FONT_WIDTH+6, PKGI_FONT_HEIGHT+2, NULL));
 }
 
-
 void pkgi_draw_text(int x, int y, uint32_t color, const char* text)
 {
     SetFontColor(RGBA_COLOR(PKGI_COLOR_TEXT_SHADOW, 200), 0);
@@ -1110,7 +1154,6 @@ void pkgi_draw_text(int x, int y, uint32_t color, const char* text)
     SetFontColor(RGBA_COLOR(color, 255), 0);
     DrawStringMono((float)x, (float)y, (char *)text);
 }
-
 
 int pkgi_text_width(const char* text)
 {

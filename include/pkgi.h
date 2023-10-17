@@ -62,6 +62,7 @@ int pkgi_update(pkgi_input* input);
 void pkgi_swap(void);
 void pkgi_end(void);
 
+int pkgi_get_battery_charge(int* status);
 const char* pkgi_get_storage_device(void);
 
 uint64_t pkgi_get_free_space(void);
