@@ -806,9 +806,15 @@ static int pspGoIsMemCardInserted(void) {
 }
 */
 
-static int is_psp_go(void)
+int pkgi_is_psp_go(uint8_t dev)
 {
     static int res = -1;
+
+    if (dev > 0)
+    {
+        res = --dev;
+        return res;
+    }
 
     if (res >= 0)
         return res;
@@ -827,7 +833,7 @@ const char* pkgi_get_storage_device(void)
 {
     const char* dev[2] = {"ms0:", "ef0:"};
 
-    return dev[is_psp_go()];
+    return dev[pkgi_is_psp_go(0)];
 }
 
 uint64_t pkgi_get_free_space(void)

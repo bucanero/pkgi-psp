@@ -41,7 +41,7 @@ static uint32_t info_update;
 
 static void calculate_eta(uint32_t speed)
 {
-    uint64_t seconds = (download_size - download_offset) / speed;
+    uint64_t seconds = (total_size - download_offset) / speed;
     if (seconds < 60)
     {
         pkgi_snprintf(dialog_eta, sizeof(dialog_eta), "%s: %us", _("ETA"), (uint32_t)seconds);
@@ -93,17 +93,7 @@ static int update_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ulto
             }
         }
 
-        float percent;
-        if (download_resume)
-        {
-            // if resuming, then we may not know download size yet, use total_size from pkg header
-            percent = total_size ? (float)((double)download_offset / total_size) : 0.f;
-        }
-        else
-        {
-            // when downloading use content length from http response as download size
-            percent = download_size ? (float)((double)download_offset / download_size) : 0.f;
-        }
+        float percent = total_size ? (float)((double)download_offset / total_size) : 0.f;
 
         pkgi_dialog_update_progress(text, dialog_extra, dialog_eta, percent);
         info_update = info_now + 500;
@@ -343,6 +333,7 @@ int pkgi_download(const DbItem* item)
 
     http = NULL;
     item_file = NULL;
+    total_size = 0;
     download_size = 0;
     download_offset = 0;
     initial_offset = 0;

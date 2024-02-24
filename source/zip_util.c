@@ -23,6 +23,8 @@ int extract_zip(const char* zip_file)
 	struct zip* archive = zip_open(zip_file, ZIP_RDONLY | ZIP_CHECKCONS, NULL);
 	int files = zip_get_num_files(archive);
 
+	LOG("Extracting %s to <%s>...", zip_file, pkgi_get_storage_device());
+
 	if (files <= 0) {
 		LOG("Empty ZIP file.");
 		zip_close(archive);
@@ -32,8 +34,6 @@ int extract_zip(const char* zip_file)
 	buffer = malloc(UNZIP_BUF_SIZE);
 	if (!buffer)
 		return 0;
-
-	LOG("Extracting %s to <%s>...", zip_file, dest_path);
 
 	for (int i = 0; i < files; i++) {
 		const char* filename = zip_get_name(archive, i, 0);

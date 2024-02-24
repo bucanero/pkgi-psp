@@ -64,6 +64,7 @@ void pkgi_end(void);
 
 int pkgi_get_battery_charge(int* status);
 const char* pkgi_get_storage_device(void);
+int pkgi_is_psp_go(uint8_t dev);
 
 uint64_t pkgi_get_free_space(void);
 const char* pkgi_get_config_folder(void);

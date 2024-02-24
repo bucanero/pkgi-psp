@@ -85,12 +85,13 @@ typedef enum {
 typedef struct Config {
     DbSort sort;
     DbSortOrder order;
-    uint8_t content;
     uint32_t filter;
+    uint8_t content;
     uint8_t version_check;
     uint8_t install_mode_iso;
     uint8_t keep_pkg;
     uint8_t allow_refresh;
+    uint8_t storage;
     char language[3];
 } Config;
 

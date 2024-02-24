@@ -17,7 +17,7 @@ if(PKGI_ENABLE_DEBUG)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_ENABLE_LOGGING=1")
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -G0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(
@@ -93,6 +93,7 @@ create_pbp_file(
   BACKGROUND_PATH NULL
   PREVIEW_PATH NULL
   TITLE "PKGi PSP"
+  VERSION 01.10
 )
 
 add_custom_target(createzip

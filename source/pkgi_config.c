@@ -117,6 +117,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     config->keep_pkg = 0;
     config->content = 0;
     config->allow_refresh = 0;
+    config->storage = 0;
     pkgi_strncpy(config->language, 3, pkgi_get_user_language());
 
     char data[4096];
@@ -199,6 +200,11 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
             else if (pkgi_stricmp(key, "language") == 0)
             {
                 pkgi_strncpy(config->language, 2, value);
+            }
+            else if (pkgi_stricmp(key, "storage") == 0)
+            {
+                config->storage = (pkgi_stricmp("ms0", value) == 0);
+                if (config->storage) pkgi_mkdirs("ms0:" PKGI_RAP_FOLDER);
             }
         }
     }
@@ -309,6 +315,11 @@ void pkgi_save_config(const Config* config, const char* update_url, uint32_t upd
     if (config->keep_pkg)
     {
         len += pkgi_snprintf(data + len, sizeof(data) - len, "keep_pkg 1\n");
+    }
+
+    if (config->storage)
+    {
+        len += pkgi_snprintf(data + len, sizeof(data) - len, "storage ms0\n");
     }
 
     char path[256];
