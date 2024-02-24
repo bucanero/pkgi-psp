@@ -141,7 +141,7 @@ static rawImage_t *imgLoadPngFromBuffer(const void *buffer)
 	if(png_sig_cmp((png_byte *)buffer, 0, PNG_SIGSIZE) != 0) 
 		return NULL;
 
-	uint64_t buffer_address=(uint64_t)buffer+PNG_SIGSIZE;
+	uint64_t buffer_address=(uint32_t)buffer+PNG_SIGSIZE;
 
 	return imgLoadPngGeneric((void *)&buffer_address, imgReadPngFromBuffer);
 }

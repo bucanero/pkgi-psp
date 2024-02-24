@@ -312,11 +312,17 @@ static int create_rap(const char* contentid, const uint8_t* rap)
     return 1;
 }
 
+static int is_zip(const char* filename)
+{
+    const char* extension = pkgi_strrchr(filename, '.');
+    return extension && (pkgi_stricmp(extension, ".zip") == 0);
+}
+
 int pkgi_download(const DbItem* item)
 {
     int result = 0;
 
-    pkgi_snprintf(root, sizeof(root), "%s.pkg", item->content);
+    pkgi_snprintf(root, sizeof(root), "%s.%s", item->content, is_zip(item->url) ? "zip" : "pkg");
     LOG("package installation file: %s", root);
 
     pkgi_snprintf(resume_file, sizeof(resume_file), "%s%s/%s.resume", pkgi_get_storage_device(), pkgi_get_temp_folder(), item->content);
@@ -385,7 +391,12 @@ int pkgi_install(int iso_mode, int remove_pkg)
     download_offset = 0;
     total_size = download_size;
 
-    result = iso_mode ? convert_psp_pkg_iso(item_path, (iso_mode == 2)) : install_psp_pkg(item_path);
+    // check if it's a zip file
+    if (is_zip(item_path))
+        result = extract_zip(item_path);
+    else
+        result = iso_mode ? convert_psp_pkg_iso(item_path, (iso_mode == 2)) : install_psp_pkg(item_path);
+
     if (result && remove_pkg)
     {
         pkgi_rm(item_path);

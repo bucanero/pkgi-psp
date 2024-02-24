@@ -711,6 +711,7 @@ int main(int argc, char* argv[])
 
     pkgi_load_config(&config, (char*) &refresh_url, sizeof(refresh_url[0]));
     pkgi_load_language(config.language);
+    pkgi_is_psp_go(config.storage);
     pkgi_dialog_init();
     
     font_height = pkgi_text_height("M");

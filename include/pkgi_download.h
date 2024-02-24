@@ -12,3 +12,4 @@ void progress_screen_refresh(void);
 void update_install_progress(const char *filename, int64_t progress);
 int install_psp_pkg(const char *file);
 int convert_psp_pkg_iso(const char* pkg_arg, int cso);
+int extract_zip(const char* zip_file);

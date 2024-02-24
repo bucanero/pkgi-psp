@@ -74,6 +74,7 @@ typedef struct
 
 char * strcasestr(const char *haystack, const char *needle);
 
+static char disp_list[0x10000] __attribute__((aligned(64)));
 static SceLwMutexWorkarea g_dialog_lock;
 
 static int g_ok_button;
@@ -399,12 +400,8 @@ void pkgi_dialog_input_text(const char* title, const char* text)
     if (sceUtilityOskInitStart(&params) < 0)
         return;
 
-    void* list = aligned_alloc(16, 0x100000);
-    if (!list)
-        return;
-
     do {
-        sceGuStart(GU_DIRECT, list);
+        sceGuStart(GU_DIRECT, disp_list);
         sceGuClearColor(0xFF68260D);
         sceGuClearDepth(0);
         sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
@@ -426,8 +423,6 @@ void pkgi_dialog_input_text(const char* title, const char* text)
         sceDisplayWaitVblankStart();
         sceGuSwapBuffers();
     } while (done != PSP_UTILITY_DIALOG_FINISHED);
-
-    free(list);
 
     if (data.result == PSP_UTILITY_OSK_RESULT_CANCELLED)
         return;
@@ -487,13 +482,9 @@ static int Net_DisplayNetDialog(void)
         return 0;
     }
 
-    void* list = aligned_alloc(16, 0x100000);
-    if (!list)
-        return 0;
-
     while(!done)
     {
-        sceGuStart(GU_DIRECT, list);
+        sceGuStart(GU_DIRECT, disp_list);
         sceGuClearColor(0xFF68260D);
         sceGuClearDepth(0);
         sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
@@ -530,8 +521,6 @@ static int Net_DisplayNetDialog(void)
         sceDisplayWaitVblankStart();
         sceGuSwapBuffers();
     }
-    free(list);
-
     done = PSP_NET_APCTL_STATE_DISCONNECTED;
     if ((ret = sceNetApctlGetState(&done)) < 0) {
         LOG("sceNetApctlGetState() failed: 0x%08x", ret);
@@ -905,7 +894,7 @@ int pkgi_is_installed(const char* titleid)
     return (pkgi_dir_exists(path));
 }
 
-uint32_t pkgi_time_msec()
+uint32_t pkgi_time_msec(void)
 {
     struct timeval tv;
 
@@ -913,9 +902,9 @@ uint32_t pkgi_time_msec()
     return (((uint32_t)tv.tv_sec)*1000)+(tv.tv_usec/1000);
 }
 
-void pkgi_thread_exit()
+void pkgi_thread_exit(void)
 {
-    sceKernelExitThread(0);
+    sceKernelExitDeleteThread(0);
 }
 
 void pkgi_start_thread(const char* name, pkgi_thread_entry* start)

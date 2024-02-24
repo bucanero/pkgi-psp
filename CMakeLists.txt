@@ -14,7 +14,7 @@ find_package(CURL REQUIRED)
 option(PKGI_ENABLE_DEBUG "enables debug logging over udp multicast" OFF)
 
 if(PKGI_ENABLE_DEBUG)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_ENABLE_LOGGING")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPKGI_ENABLE_LOGGING=1")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
@@ -62,6 +62,7 @@ add_executable(${PROJECT_NAME}
   source/loadpng.c
   source/libfont.c
   source/ttf_fonts.c
+  source/zip_util.c
   source/pkgi.c
   source/pkgi_aes.c
   source/pkgi_db.c
@@ -81,6 +82,7 @@ target_link_libraries(${PROJECT_NAME}
   pspnet
   pspnet_apctl
   mini18n
+  zip
   bz2
   z
 )

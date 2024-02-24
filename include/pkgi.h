@@ -5,7 +5,7 @@
 #include "pkgi_dialog.h"
 
 #define PKGI_UPDATE_URL     "https://api.github.com/repos/bucanero/pkgi-psp/releases/latest"
-#define PKGI_VERSION        "1.0.0"
+#define PKGI_VERSION        "1.1.0"
 
 #define PKGI_BUTTON_SELECT 0x000001
 #define PKGI_BUTTON_START  0x000008
@@ -17,10 +17,10 @@
 #define PKGI_BUTTON_LT     0x000100 // L1
 #define PKGI_BUTTON_RT     0x000200 // R1
 
-#define PKGI_BUTTON_X 0x004000 // cross
-#define PKGI_BUTTON_O 0x002000 // circle
-#define PKGI_BUTTON_T 0x001000 // triangle
-#define PKGI_BUTTON_S 0x008000 // square
+#define PKGI_BUTTON_X      0x004000 // cross
+#define PKGI_BUTTON_O      0x002000 // circle
+#define PKGI_BUTTON_T      0x001000 // triangle
+#define PKGI_BUTTON_S      0x008000 // square
 
 #define PKGI_UNUSED(x) (void)(x)
 
@@ -73,7 +73,7 @@ int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
 int pkgi_install(int iso_mode, int remove_pkg);
 
-uint32_t pkgi_time_msec();
+uint32_t pkgi_time_msec(void);
 
 typedef void pkgi_thread_entry(void);
 void pkgi_start_thread(const char* name, pkgi_thread_entry* start);
