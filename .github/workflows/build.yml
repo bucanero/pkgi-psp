@@ -35,7 +35,7 @@ jobs:
 
     - name: Build PKGi App Package
       run: |
-        psp-cmake . -DCMAKE_BUILD_TYPE=Release
+        psp-cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_PRX=ON -DENC_PRX=ON
         make
         make createzip
 
