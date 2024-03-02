@@ -324,6 +324,13 @@ int pkgi_download(const DbItem* item)
     }
     else
     {
+        if (item->type == ContentLocal)
+        {
+            pkgi_strncpy(root, sizeof(root), item->url);
+            pkgi_snprintf(item_path, sizeof(item_path), "%s%s/%s", pkgi_get_storage_device(), pkgi_get_temp_folder(), root);
+            return 1;
+        }
+
         LOG("cannot load resume file, starting download from scratch");
         pkgi_dialog_set_progress_title(_("Downloading..."));
         download_resume = 0;

@@ -77,7 +77,7 @@ void pkgi_dialog_details(DbItem *item, const char* content_type)
 //    if (!pkg_icon && pkgi_get_size(dialog_extra)) 
 //        pkg_icon = pkgi_load_png_file(dialog_extra);
 
-    pkgi_snprintf(dialog_extra, sizeof(dialog_extra), "ID: %s\n\n%s: %s - RAP(%s) SHA256(%s)", 
+    pkgi_snprintf(dialog_extra, sizeof(dialog_extra), "ID: %s\n%s: %s - RAP(%s) SHA256(%s)", 
         item->content, _("Content"), content_type,
         (item->rap ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF),
         (item->digest ? PKGI_UTF8_CHECK_ON : PKGI_UTF8_CHECK_OFF));
@@ -333,7 +333,7 @@ void pkgi_do_dialog(pkgi_input* input)
 //        pkgi_draw_texture_z(pkg_icon, PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING + 425, PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING + 25, PKGI_DIALOG_TEXT_Z, 0.5);
 
         pkgi_draw_text_z(PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING, PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING + font_height*2, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, local_text);
-        pkgi_draw_text_z(PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING, PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING + font_height*5, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, local_extra);
+        pkgi_draw_text_z(PKGI_DIALOG_HMARGIN + PKGI_DIALOG_PADDING, PKGI_DIALOG_VMARGIN + PKGI_DIALOG_PADDING + font_height*4, PKGI_DIALOG_TEXT_Z, PKGI_COLOR_TEXT_DIALOG, local_extra);
 
         if (local_allow_close)
         {

@@ -74,7 +74,7 @@ static MenuEntry content_entries[] =
     { MenuFilter, "Updates", DbFilterContentUpdate },
     { MenuFilter, "Emulators", DbFilterContentEmulator },
     { MenuFilter, "Apps", DbFilterContentApp },
-    { MenuFilter, "Tools", DbFilterContentTool }
+    { MenuFilter, "Local PKGs", DbFilterContentLocal }
 };
 
 static MenuEntry format_entries[] = 
@@ -144,7 +144,7 @@ void pkgi_menu_start(int search_clear, const Config* config)
     content_entries[6].text = _("Updates");
     content_entries[7].text = _("Emulators");
     content_entries[8].text = _("Apps");
-    content_entries[9].text = _("Tools");
+    content_entries[9].text = _("Local PKGs");
 
     format_entries[0].text = _("Digital");
     format_entries[1].text = _("ISO");

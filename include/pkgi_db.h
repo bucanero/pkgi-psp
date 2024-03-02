@@ -40,11 +40,11 @@ typedef enum {
     DbFilterContentUpdate   = 0x002000,
     DbFilterContentEmulator = 0x004000,
     DbFilterContentApp      = 0x008000,
-    DbFilterContentTool     = 0x010000,
+    DbFilterContentLocal    = 0x010000,
 
     DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR | DbFilterRegionJPN | DbFilterRegionASA,
     DbFilterAllContent = DbFilterContentGame | DbFilterContentDLC | DbFilterContentTheme | DbFilterContentPSX | 
-                         DbFilterContentDemo | DbFilterContentUpdate | DbFilterContentEmulator | DbFilterContentApp | DbFilterContentTool,
+                         DbFilterContentDemo | DbFilterContentUpdate | DbFilterContentEmulator | DbFilterContentApp | DbFilterContentLocal,
     DbFilterAll = DbFilterAllRegions | DbFilterAllContent | DbFilterInstalled | DbFilterMissing,
 } DbFilter;
 
@@ -58,7 +58,7 @@ typedef enum {
     ContentUpdate,
     ContentEmulator,
     ContentApp,
-    ContentTool,
+    ContentLocal,
     MAX_CONTENT_TYPES
 } ContentType;
 

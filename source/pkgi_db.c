@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <mini18n.h>
 #include <stdlib.h>
-//#include <libxml/parser.h>
-//#include <libxml/tree.h>
+#include <dirent.h>
+#include <string.h>
 
 #define MAX_DB_SIZE (4*1024*1024)
 #define MAX_DB_ITEMS 0x4000
@@ -390,6 +390,44 @@ static int load_database(uint8_t db_id)
     return 1;
 }
 
+static void scan_local_packages(void)
+{
+    DIR* d;
+    void* fp;
+    struct dirent *dirp;
+    int64_t fsize;
+    char buf[256];
+
+    pkgi_snprintf(buf, sizeof(buf), "%s%s", pkgi_get_storage_device(), pkgi_get_temp_folder());
+    if ((d = opendir(buf)) == NULL)
+        return;
+
+	while ((dirp = readdir(d)) != NULL)
+	{
+        pkgi_snprintf(buf, sizeof(buf), "%s%s/%s", pkgi_get_storage_device(), pkgi_get_temp_folder(), dirp->d_name);
+        fsize = pkgi_get_size(buf);
+        if ((fp = pkgi_open(buf)) == NULL)
+            continue;
+
+        pkgi_read(fp, buf, 0x80);
+        pkgi_close(fp);
+
+        if (!pkgi_memequ(buf, "\x7FPKG\x80\x00\x00\x02", 8) || fsize != get32be(buf + 0x1C))
+            continue;
+
+        memset(&db[db_count], 0, sizeof(DbItem));
+        db[db_count].content = strdup(buf + 0x30);
+        db[db_count].type = ContentLocal;
+        db[db_count].name = strdup(dirp->d_name);
+        db[db_count].size = fsize;
+        db[db_count].url = db[db_count].name;
+        db[db_count].description = db[db_count].name + pkgi_strlen(dirp->d_name);
+        db_item[db_count] = &db[db_count];
+        db_count++;
+    }
+    closedir(d);
+}
+
 int pkgi_db_update(const char* update_url, uint32_t update_len, char* error, uint32_t error_size)
 {
     char path[256];
@@ -428,7 +466,7 @@ int pkgi_db_reload(char* error, uint32_t error_size)
         return 0;
     }
 
-    for (int i = 0; i < MAX_CONTENT_TYPES; i++)
+    for (int i = 0; i < ContentLocal; i++)
     {
         pkgi_snprintf(path, sizeof(path), "%s/pkgi%s.txt", pkgi_get_config_folder(), pkgi_content_tag(i));
 
@@ -438,6 +476,7 @@ int pkgi_db_reload(char* error, uint32_t error_size)
         }
     }
 
+    scan_local_packages();
     LOG("finished db update, %u total items", db_count);
 
     if (db_count == 0)
@@ -471,7 +510,7 @@ static int matches(GameRegion region, ContentType content, uint32_t filter)
         || (content == ContentUpdate && (filter & DbFilterContentUpdate))
         || (content == ContentEmulator && (filter & DbFilterContentEmulator))
         || (content == ContentApp && (filter & DbFilterContentApp))
-        || (content == ContentTool && (filter & DbFilterContentTool))
+        || (content == ContentLocal && (filter & DbFilterContentLocal))
         || (content == ContentUnknown));
 }
 

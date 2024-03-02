@@ -234,7 +234,6 @@ const char* pkgi_content_tag(ContentType content)
     case ContentUpdate: return "_updates";
     case ContentEmulator: return "_emulators";
     case ContentApp: return "_apps";
-    case ContentTool: return "_tools";
     default: return "";
     }
 }

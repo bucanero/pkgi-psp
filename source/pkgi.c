@@ -99,9 +99,6 @@ static void pkgi_do_download(void)
 
     LOG("download thread start");
 
-    // short delay to allow download dialog to animate smoothly
-    pkgi_sleep(300);
-
     pkgi_lock_process();
     if (pkgi_download(item))
     {
@@ -225,7 +222,7 @@ static const char* content_type_str(ContentType content)
         case ContentUpdate: return _("Updates");
         case ContentEmulator: return _("Emulators");
         case ContentApp: return _("Apps");
-        case ContentTool: return _("Tools");
+        case ContentLocal: return _("Local PKGs");
         default: return _("Unknown");
     }
 }
@@ -536,7 +533,7 @@ static void pkgi_do_head(void)
     {
         pkgi_snprintf(size, sizeof(size), "%u (%u)", count, total);
     }
-    pkgi_snprintf(title, sizeof(title), "PKGi PSP v%s - %s: %s", PKGI_VERSION, content_type_str(config.content), size);
+    pkgi_snprintf(title, sizeof(title), "PKGi v%s - %s: %s", PKGI_VERSION, content_type_str(config.content), size);
     pkgi_draw_text(PKGI_MAIN_HMARGIN, PKGI_MAIN_VMARGIN, PKGI_COLOR_TEXT_HEAD, title);
 
     pkgi_draw_fill_rect(0, font_height + PKGI_MAIN_VMARGIN, PKGI_SCREEN_WIDTH, PKGI_MAIN_HLINE_HEIGHT, PKGI_COLOR_HLINE);
