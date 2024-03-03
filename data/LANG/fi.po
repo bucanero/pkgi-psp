@@ -30,7 +30,7 @@ msgid "Installation failed"
 msgstr "Asennus ep„onnistui"
 
 #: pkgi.c:118
-msgid "Successfully downloaded"
+msgid "Successfully installed"
 msgstr "Onnistuneesti ladattu"
 
 #: pkgi.c:122

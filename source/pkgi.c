@@ -104,7 +104,7 @@ static void pkgi_do_download(void)
     {
         if (install())
         {
-            pkgi_dialog_message(item->name, _("Successfully downloaded"));
+            pkgi_dialog_message(item->name, _("Successfully installed"));
             LOG("install succeeded");
         }
         else

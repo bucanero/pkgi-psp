@@ -30,7 +30,7 @@ msgid "Installation failed"
 msgstr "Penginstalan gagal"
 
 #: pkgi.c:118
-msgid "Successfully downloaded"
+msgid "Successfully installed"
 msgstr "Terunduh dengan sukses"
 
 #: pkgi.c:122

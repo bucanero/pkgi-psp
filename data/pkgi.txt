@@ -1,0 +1,6 @@
+U00001-NP0APOLLO_00-0000000000000000,8,Apollo Save Tool v1.3.0,Save-game manager,,https://github.com/bucanero/apollo-psp/releases/download/v1.3.0/apollo-psp.zip,6885196,DFF88635A044F319686231ACABB548CC42EA1CF3A992856572C7AF20F70D30ED
+U00001-CMFILEMGR_00-0000000000000000,8,CM File Manager v4.10,File manager,,https://github.com/joel16/CMFileManager-PSP/releases/download/v4.10/CMFileManager-PSP.zip,1815998,
+U00001-PSPTOOL10_00-0000000000000000,8,PSP Tool v1.00,PSP Tool,,https://archive.org/download/psp-tool.-7z/PSP%20Tool.zip,5023819,
+U00001-PSPFILER6_00-0000000000000000,8,PSP Filer v6.6,File manager,,https://wololo.net/download.php?f=filer6.6.zip,1295106,
+U00001-NZPORTABL_00-0000000000000000,1,Nazi Zombies: Portable,Nightly 64 Mb,,https://github.com/nzp-team/nzportable/releases/download/nightly/nzportable-psp-64mb.zip,36163686,
+U00001-WOLFENS3D_00-0000000000000000,1,Wolfenstein 3D,v6.0 shareware,,https://archive.org/download/wolf-3-d-v-6.0.7z/Wolf3D_V6.0.zip,8043837,

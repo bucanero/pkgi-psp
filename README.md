@@ -51,7 +51,6 @@ You can also load additional database files:
 - `pkgi_updates.txt`
 - `pkgi_emulators.txt`
 - `pkgi_apps.txt`
-- `pkgi_tools.txt`
 
 Items on each of these files will be auto-categorized to the file content type. **Note:** The app assumes that every database file has the same format, as defined in `dbformat.txt`.
 
@@ -106,12 +105,14 @@ where:
 An example `pkgi.txt` file following the `contentid,type,name,description,rap,url,size,checksum` format:
 
 ```
-EP0001-FILEMANAG_00-0000000000000000,8,FileManager v1.40,File Manager,,http://github.com/Zarh/ManaGunZ/releases/download/1.40/FileManager_v1.40.pkg,12171120,FAF680636B18AD0B70AA61F48A78C5E42D6972F795F1B82CC434BE3DDE60F00F
+U00001-NP0APOLLO_00-0000000000000000,8,Apollo Save Tool v1.3.0,Save-game manager,,https://github.com/bucanero/apollo-psp/releases/download/v1.3.0/apollo-psp.zip,6885196,DFF88635A044F319686231ACABB548CC42EA1CF3A992856572C7AF20F70D30ED
+U00001-CMFILEMGR_00-0000000000000000,8,CM File Manager v4.10,File manager,,https://github.com/joel16/CMFileManager-PSP/releases/download/v4.10/CMFileManager-PSP.zip,1815998,7A5FD10184546AB993A4D5F3054BCBA9E9B7A1C569EE26E366F1F5CC9DA5A554
+UP0001-PSPTOOL10_00-0000000000000000,8,PSP Tool v1.00,PSP Tool,,https://archive.org/download/psp-tool.-7z/PSP%20Tool.zip,5023819,
+UP0001-PSPFILER6_00-0000000000000000,8,PSP Filer v6.6,File manager,,https://wololo.net/download.php?f=filer6.6.zip,1295106,
+UP0001-NZPORTABL_00-0000000000000000,1,Nazi Zombies: Portable,Nightly 64 Mb,,https://github.com/nzp-team/nzportable/releases/download/nightly/nzportable-psp-64mb.zip,36163686,
 UP0001-IRISMAN00_00-VER4880000000000,8,IRISMAN 4.88.1,Backup Manager,,http://github.com/aldostools/IRISMAN/releases/download/4.88/IRISMAN_4.88.pkg,29411984,E6EF607F0002B31BFB148BE4FC9BDBACB4E53110751F0E667C701D40B5290570
-EP0001-MANAGUNZ0_00-0000000000000000,8,ManaGunZ v1.40,Backup Manager,,http://github.com/Zarh/ManaGunZ/releases/download/1.40/ManaGunZ_v1.40.pkg,17563040,CE0E4036903E881C08259FD69E777F6BC9CD24E823B471A7B15C88FDDBB2E330
-UP0001-PS3SFM001_00-0000000000000000,8,Simple file manager v0.5.2,File Manager,,http://github.com/lmirel/fm_psx/releases/download/v0.5.2/sfm_ps3.pkg,1098800,301F64CC94E9BC442FDAC9199BFB8153AC2430A5E47331C6CF8A25B7881648A6
-EP0001-UPDWEBMOD_00-0000000000000000,9,webMAN MOD v1.47.36,Backup Manager,,http://github.com/aldostools/webMAN-MOD/releases/download/1.47.36/webMAN_MOD_1.47.36_Installer.pkg,13580448,
 ```
+
 ### Content types
 
 | Type value |	Content type | DB File |
@@ -125,7 +126,6 @@ EP0001-UPDWEBMOD_00-0000000000000000,9,webMAN MOD v1.47.36,Backup Manager,,http:
 | 6	| Update             | `pkgi_updates.txt`
 | 7	| Emulator           | `pkgi_emulators.txt`
 | 8	| Application        | `pkgi_apps.txt`
-| 9	| Tool               | `pkgi_tools.txt`
 
 ## User-defined DB format
 

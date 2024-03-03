@@ -52,3 +52,9 @@ jobs:
         name: pkgi-psp-build_${{ env.sha_name }}
         path: pkgi-psp.zip
         if-no-files-found: error
+
+    - name: Push OFW artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: pkgi-ofw-build_${{ env.sha_name }}
+        path: ofw/pkgi-psp.zip

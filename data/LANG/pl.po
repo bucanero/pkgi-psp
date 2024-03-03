@@ -30,7 +30,7 @@ msgid "Installation failed"
 msgstr "Instalacja nie powiodla sie"
 
 #: pkgi.c:118
-msgid "Successfully downloaded"
+msgid "Successfully installed"
 msgstr "Pobrano pomyslnie"
 
 #: pkgi.c:122

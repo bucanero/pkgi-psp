@@ -30,8 +30,8 @@ msgid "Installation failed"
 msgstr "Installation a ‚chou‚e"
 
 #: pkgi.c:118
-msgid "Successfully downloaded"
-msgstr "T‚l‚chargement r‚ussi"
+msgid "Successfully installed"
+msgstr "Installation r‚ussi"
 
 #: pkgi.c:122
 msgid "Task successfully queued (reboot to start)"

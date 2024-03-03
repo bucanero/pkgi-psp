@@ -4,6 +4,27 @@ All notable changes to the `pkgi-psp` project will be documented in this file. T
 
 ## [Unreleased]()
 
+## [v1.1.0](https://github.com/bucanero/pkgi-psp/releases/tag/v1.1.0) - 2022-03-03
+
+### Added
+
+* Show battery level
+* .Zip file support
+  - Download and extract `.zip` links
+* Local .PKG installation
+  - Install `.pkg` files from the PSP's memory stick
+  - Scan and list packages from `ms0:/PKG`
+* Add PSP-Go storage option
+  - Edit `config.txt` to change storage location (add line `storage ms0`)
+
+### Misc
+
+* Add OFW-compatible build
+
+### Fixed
+
+* Fix progress bar ETA when resuming downloads
+
 ## [v1.0.0](https://github.com/bucanero/pkgi-psp/releases/tag/v1.0.0) - 2023-10-14
 
 ### Added
