@@ -35,13 +35,16 @@ jobs:
 
     - name: Build PKGi App Package
       run: |
+        pwd
         psp-cmake . -DCMAKE_BUILD_TYPE=Release
         make
         make createzip
 
     - name: Build PKGi App Package (OFW)
       run: |
+        pwd
         mkdir ofw && cd ofw
+        pwd
         psp-cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_PRX=ON -DENC_PRX=ON
         make
         make createzip
