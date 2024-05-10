@@ -5,28 +5,21 @@ on: [ push, pull_request, workflow_dispatch ]
 jobs:
   build_pkg:
     runs-on: ubuntu-22.04
+    container: pspdev/pspdev:latest
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        apk add zip
 
     - name: Checkout dbglogger
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: bucanero/dbglogger
         path: dbglogger
-
-      # install latest pspdev sdk
-    - name: Download PSP SDK
-      run: |
-        curl -sL https://github.com/pspdev/pspdev/releases/download/latest/pspdev-ubuntu-latest.tar.gz | tar xvz -C ./
-        sed -i '64s/.*/INTERFACE_LINK_LIBRARIES "${PSPDEV}\/psp\/lib\/libmbedtls.a;${PSPDEV}\/psp\/lib\/libmbedx509.a;${PSPDEV}\/psp\/lib\/libmbedcrypto.a;ZLIB::ZLIB"/' pspdev/psp/lib/cmake/CURL/CURLTargets.cmake
-
-    - name: Set env vars
-      run: |
-        echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-        echo "PSPDEV=${GITHUB_WORKSPACE}/pspdev" >> $GITHUB_ENV
-        echo "${GITHUB_WORKSPACE}/pspdev/bin" >> $GITHUB_PATH
 
     - name: Install dbglogger
       working-directory: dbglogger
@@ -45,16 +38,21 @@ jobs:
         psp-cmake . -DCMAKE_BUILD_TYPE=Release
         make
         make createzip
+    
+    - name: Get short SHA
+      id: slug
+      run: |
+        printf '%s\n' "sha8=$(printf '%s\n' ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_OUTPUT
 
     - name: Push package artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: pkgi-psp-build_${{ env.sha_name }}
+        name: pkgi-psp-build_${{ steps.slug.outputs.sha8 }}
         path: pkgi-psp.zip
         if-no-files-found: error
 
     - name: Push OFW artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: pkgi-ofw-build_${{ env.sha_name }}
+        name: pkgi-ofw-build_${{ steps.slug.outputs.sha8 }}
         path: ofw/pkgi-psp.zip
