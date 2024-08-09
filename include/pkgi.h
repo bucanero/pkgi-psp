@@ -74,6 +74,7 @@ int pkgi_is_incomplete(const char* titleid);
 int pkgi_is_installed(const char* titleid);
 int pkgi_install(int iso_mode, int remove_pkg);
 
+void pkgi_play_audio(void);
 uint32_t pkgi_time_msec(void);
 
 typedef void pkgi_thread_entry(void);
@@ -114,7 +115,7 @@ void* pkgi_create(const char* path);
 void* pkgi_open(const char* path);
 // open file for writing, next write will append data to end of it
 void* pkgi_append(const char* path);
-
+// close file
 void pkgi_close(void* f);
 
 int pkgi_read(void* f, void* buffer, uint32_t size);

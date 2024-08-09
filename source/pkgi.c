@@ -111,6 +111,12 @@ static void pkgi_do_download(void)
         {
             pkgi_dialog_error(_("Installation failed"));
         }
+
+        if (config.audio_notification)
+        {
+            pkgi_play_audio();
+        }
+
         LOG("download completed!");
     }
     pkgi_unlock_process();

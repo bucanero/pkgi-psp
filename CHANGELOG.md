@@ -17,13 +17,13 @@ All notable changes to the `pkgi-psp` project will be documented in this file. T
 * Add PSP-Go storage option
   - Edit `config.txt` to change storage location (add line `storage ms0`)
 
-### Misc
-
-* Add OFW-compatible build
-
 ### Fixed
 
 * Fix progress bar ETA when resuming downloads
+
+### Misc
+
+* Add OFW-compatible build
 
 ## [v1.0.0](https://github.com/bucanero/pkgi-psp/releases/tag/v1.0.0) - 2023-10-14
 

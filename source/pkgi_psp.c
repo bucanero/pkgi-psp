@@ -12,6 +12,7 @@
 #include <psputility.h>
 #include <psppower.h>
 #include <pspctrl.h>
+#include <pspaudio.h>
 #include <pspthreadman.h>
 #include <pspiofilemgr.h>
 
@@ -21,21 +22,22 @@
 
 #include <curl/curl.h>
 
+#include "ahx.h"
 #include "libfont.h"
 #include "ttf_render.h"
 #include "font-8x16.h"
 
 // Audio handle
 static int32_t audio = 0;
-extern const uint8_t _binary_data_haiku_s3m_start;
-extern const uint8_t _binary_data_haiku_s3m_size;
+extern const uint8_t _binary_data_sound_ahx_start;
+extern const uint8_t _binary_data_sound_ahx_size;
 
 static uint32_t * texture_mem;      // Pointers to texture memory
 static uint32_t * free_mem;         // Pointer after last texture
 
 
 #define YA2D_DEFAULT_Z 1
-#define AUDIO_SAMPLES 256
+#define AUDIO_SAMPLES 0x780
 
 #define PKGI_OSK_INPUT_LENGTH 128
 
@@ -443,6 +445,41 @@ void pkgi_dialog_input_get_text(char* text, uint32_t size)
     LOG("input: %s", text);
 }
 
+int play_audio_thread(SceSize args, void* data)
+{
+    // Play the audio notification
+    if (!AHXPlayer_InitSubsong(0))
+    {
+        LOG("[ERROR] Failed to decode audio file");
+        sceKernelExitDeleteThread(-1);
+    }
+
+    // Calculate the sample count and allocate a buffer for the sample data accordingly
+    int16_t *pSampleData = (int16_t *)malloc(AUDIO_SAMPLES * sizeof(int16_t));
+
+    for (int i = 0; i < 0x40 && pkgi_dialog_is_open(); i++)
+    {
+        // Decode the audio into pSampleData
+        AHXOutput_MixBuffer(pSampleData);
+
+        /* Output audio */
+        if (sceAudioOutputBlocking(audio, PSP_AUDIO_VOLUME_MAX, pSampleData) < 0)
+        {
+            LOG("Failed to output audio");
+        }
+    }
+
+    free(pSampleData);
+    sceKernelExitDeleteThread(0);
+}
+
+void pkgi_play_audio(void)
+{
+	// Start audio thread
+	SceUID id = sceKernelCreateThread("audio_thread", &play_audio_thread, 0x10, 0x10000, PSP_THREAD_ATTR_USER, NULL);
+	sceKernelStartThread(id, 0, NULL);
+}
+
 static void load_ttf_fonts(void)
 {
     LOG("loading TTF fonts");
@@ -609,6 +646,34 @@ static int init_video(void)
     return 0;
 }
 
+static int init_audio(void)
+{
+    // Open a handle to audio output device
+    audio = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_AUDIO_SAMPLE_ALIGN(AUDIO_SAMPLES), PSP_AUDIO_FORMAT_MONO);
+    if (audio < 0)
+    {
+        LOG("[ERROR] Failed to open audio on main port");
+        return audio;
+    }
+
+    sceAudioChangeChannelVolume(audio, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX);
+
+    // Decode AHX file to play
+    AHXPlayer_Init();
+    AHXPlayer_LoadSongBuffer((void*) &_binary_data_sound_ahx_start, (int) &_binary_data_sound_ahx_size);
+
+    return 0;
+}
+
+static void audio_end(void)
+{
+    // Stop audio playback
+    sceAudioChRelease(audio);
+
+    // Unload AHX file
+    AHXPlayer_FreeSong();
+}
+
 static int pspPadInit(void)
 {
     int ret;
@@ -666,6 +731,12 @@ void pkgi_start(void)
     {
         LOG("[ERROR] Failed to init network!");
 //        return (-1);
+    }
+
+    LOG("initializing Audio");
+    if (init_audio() < 0)
+    {
+        LOG("[ERROR] Failed to init audio!");
     }
 
     tex_buttons.circle   = pkgi_load_image_buffer(CIRCLE, png);
@@ -742,13 +813,15 @@ void pkgi_swap(void)
 
 void pkgi_end(void)
 {
-    curl_global_cleanup();
+    audio_end();
+    http_end();
     pkgi_stop_debug_log();
 
     pkgi_free_texture(tex_buttons.circle);
     pkgi_free_texture(tex_buttons.cross);
     pkgi_free_texture(tex_buttons.triangle);
     pkgi_free_texture(tex_buttons.square);
+    TTFUnloadFont();
 
     // Cleanup resources
     sceKernelDeleteLwMutex(&g_dialog_lock);
@@ -756,7 +829,6 @@ void pkgi_end(void)
     SDL_DestroyWindow(window);
     // Stop all SDL sub-systems
     SDL_Quit();
-    http_end();
 }
 
 int pkgi_get_battery_charge(int* status)

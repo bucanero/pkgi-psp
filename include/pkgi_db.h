@@ -92,6 +92,7 @@ typedef struct Config {
     uint8_t keep_pkg;
     uint8_t allow_refresh;
     uint8_t storage;
+    uint8_t audio_notification;
     char language[3];
 } Config;
 
