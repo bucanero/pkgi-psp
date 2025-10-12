@@ -84,6 +84,7 @@ target_link_libraries(${PROJECT_NAME}
   pspnet_apctl
   mini18n
   zip
+  lzma
   bz2
   z
 )
