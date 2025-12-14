@@ -4,7 +4,7 @@ All notable changes to the `pkgi-psp` project will be documented in this file. T
 
 ## [Unreleased]()
 
-## [v1.1.0](https://github.com/bucanero/pkgi-psp/releases/tag/v1.1.0) - 2022-03-03
+## [v1.1.0](https://github.com/bucanero/pkgi-psp/releases/tag/v1.1.0) - 2024-03-03
 
 ### Added
 
