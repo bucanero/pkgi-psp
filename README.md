@@ -226,7 +226,10 @@ You can also set the `PSPIP` environment variable to your PSP's IP address, and 
 
 # License
 
-`pkgi-psp` is released under the [MIT License](LICENSE).
+This program is free software: you can redistribute it and/or modify
+it under the terms of the [GNU General Public License][pkgi_license] as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 [PSDLE]: https://repod.github.io/psdle/
 [socat]: http://www.dest-unreach.org/socat/
