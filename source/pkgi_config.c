@@ -118,6 +118,7 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     config->content = 0;
     config->allow_refresh = 0;
     config->storage = 0;
+    config->audio_notification = 1;
     pkgi_strncpy(config->language, 3, pkgi_get_user_language());
 
     char data[4096];

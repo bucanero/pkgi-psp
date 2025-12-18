@@ -57,6 +57,7 @@ add_resources(apollo_res ${res_files})
 
 add_executable(${PROJECT_NAME}
   ${apollo_res}
+  source/ahx.c
   source/pkg2iso.c
   source/depackager.c
   source/loadpng.c
