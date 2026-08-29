@@ -41,10 +41,12 @@ typedef enum {
     DbFilterContentEmulator = 0x004000,
     DbFilterContentApp      = 0x008000,
     DbFilterContentLocal    = 0x010000,
+    DbFilterContentUnknown  = 0x020000,
 
     DbFilterAllRegions = DbFilterRegionUSA | DbFilterRegionEUR | DbFilterRegionJPN | DbFilterRegionASA,
     DbFilterAllContent = DbFilterContentGame | DbFilterContentDLC | DbFilterContentTheme | DbFilterContentPSX | 
-                         DbFilterContentDemo | DbFilterContentUpdate | DbFilterContentEmulator | DbFilterContentApp | DbFilterContentLocal,
+                         DbFilterContentDemo | DbFilterContentUpdate | DbFilterContentEmulator | DbFilterContentApp | DbFilterContentLocal |
+                         DbFilterContentUnknown,
     DbFilterAll = DbFilterAllRegions | DbFilterAllContent | DbFilterInstalled | DbFilterMissing,
 } DbFilter;
 
