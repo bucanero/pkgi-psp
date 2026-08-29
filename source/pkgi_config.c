@@ -61,7 +61,9 @@ static DbSortOrder parse_order(const char* value, DbSortOrder order)
 
 static DbSortOrder parse_filter(char* value, uint32_t filter)
 {
-    uint32_t result = 0;
+    // the filter line only lists regions, so the content bits it doesn't
+    // mention have to survive parsing it
+    uint32_t result = filter & DbFilterContentUnknown;
 
     char* start = value;
     for (;;)
@@ -162,7 +164,9 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
 
             if (pkgi_stricontains(key, "url"))
             {
-                for (int i = 0; i < MAX_CONTENT_TYPES; i++)
+                // ContentLocal has no url, and its empty tag would also
+                // match a plain "url" key
+                for (int i = 0; i < ContentLocal; i++)
                     if (pkgi_stricmp(key+3, pkgi_content_tag(i)) == 0)
                     {
                         pkgi_strncpy(refresh_url + refresh_len*i, refresh_len, value);
@@ -218,7 +222,9 @@ void pkgi_load_config(Config* config, char* refresh_url, uint32_t refresh_len)
     }
     else
     {
-        config->filter |= (128 << config->content);
+        // untyped items travel with whichever category is selected, so a
+        // plain pkgi.txt doesn't vanish when filtering by content
+        config->filter |= (128 << config->content) | DbFilterContentUnknown;
     }
 }
 
@@ -265,7 +271,7 @@ void pkgi_save_config(const Config* config, const char* update_url, uint32_t upd
     char data[4096];
     int len = 0;
 
-    for (int i = 0; i < MAX_CONTENT_TYPES; i++)
+    for (int i = 0; i < ContentLocal; i++)
     {
         const char* tmp_url = update_url + update_len*i;
         if (update_url && tmp_url[0] != 0)

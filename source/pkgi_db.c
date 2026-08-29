@@ -20,6 +20,9 @@
 #define EXTDB2_ID_SHA256 "\x72\x55\xb4\xce\x97\x59\x5a\xb6\x66\x6a\xc9\x80\x58\xd3\x22\x95\x8d\x9c\x33\x6a\xbd\x25\x21\x43\x79\x10\xb7\x98\x06\x0e\x40\x85"
 #define EXTDB3_ID_SHA256 "\x56\x1a\x55\x30\xd5\xad\xfd\x00\x3c\x40\x42\x6a\xe2\x79\x30\xd6\xcc\xc0\x93\xbd\x1c\xf6\x43\xe7\x9c\x74\xf1\xfb\x8e\xf9\xf4\x7c"
 
+// content type loops are bounded by ContentLocal, so it must stay last
+typedef char pkgi_assert_local_is_last[(ContentLocal == MAX_CONTENT_TYPES - 1) ? 1 : -1];
+
 static char* db_data = NULL;
 static uint32_t db_total;
 static uint32_t db_size;
@@ -65,6 +68,8 @@ static ColumnEntry entries[] =
     { ColumnUrl, "url", "" },
     { ColumnSize, "size", "" },
     { ColumnChecksum, "checksum", "" },
+    // discard slot, so entries[] can be indexed by any ColumnType
+    { ColumnUnknown, "", "" },
 };
 
 static const ColumnType default_format[] =
@@ -272,7 +277,7 @@ static int load_database(uint8_t db_id)
             *ptr++ = 0;
 
             int j;
-            for (j = 0; j < 8; j++) {
+            for (j = 0; j < (int)PKGI_COUNTOF(entries) - 1; j++) {
                 if (pkgi_stricmp(entries[j].text_id, column_name) == 0) {
                     types[column] = entries[j].type;
                 }
@@ -337,6 +342,12 @@ static int load_database(uint8_t db_id)
 
     while (ptr < end && *ptr)
     {
+        // columns this format doesn't map would keep the previous row's values
+        for (uint32_t i = 0; i < PKGI_COUNTOF(entries); i++)
+        {
+            dbf.data[i].data = "";
+        }
+
         column = 0;
         while (ptr < end && column < dbf.total_columns)
         {
@@ -437,7 +448,7 @@ int pkgi_db_update(const char* update_url, uint32_t update_len, char* error, uin
         return 0;
     }
 
-    for (int i = 0; i < MAX_CONTENT_TYPES; i++)
+    for (int i = 0; i < ContentLocal; i++)
     {
         const char* tmp_url = update_url + update_len*i;
 
@@ -511,7 +522,7 @@ static int matches(GameRegion region, ContentType content, uint32_t filter)
         || (content == ContentEmulator && (filter & DbFilterContentEmulator))
         || (content == ContentApp && (filter & DbFilterContentApp))
         || (content == ContentLocal && (filter & DbFilterContentLocal))
-        || (content == ContentUnknown));
+        || (content == ContentUnknown && (filter & DbFilterContentUnknown)));
 }
 
 static int lower(const DbItem* a, const DbItem* b, DbSort sort, DbSortOrder order, uint32_t filter)

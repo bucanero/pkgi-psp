@@ -11,7 +11,8 @@
 #include <mini18n.h>
 #include <SDL2/SDL.h>
 
-#define content_filter(c)   (c ? 1 << (7 + c) : DbFilterAllContent)
+// untyped items stay visible whatever category is selected
+#define content_filter(c)   (c ? ((1 << (7 + c)) | DbFilterContentUnknown) : DbFilterAllContent)
 
 typedef enum  {
     StateError,
